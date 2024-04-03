@@ -1,6 +1,9 @@
 "use strict";
 
-//convert text into numbers for seed
+/** Hash function
+ * @param {number}
+ * @returns {number}
+ */
 Math.hash = s => {
     for (var i = 0, h = 9; i < s.length;) h = Math.imul(h ^ s.charCodeAt(i++), 9 ** 9);
     return h ^ h >>> 9
@@ -16,6 +19,10 @@ const testingToggle = {
     "commit":"",
     funcRedef:true
 }
+/** Shuffles the given array
+ * @param {[*]} array 
+ * @returns {[*]}
+ */
 function shuffle(array) {
     var currentIndex = array.length,
         temporaryValue,
@@ -75,7 +82,16 @@ function shuffle(array) {
 //     }
 //     return best
 // }
-//this function is used for finding the point where a ray hits things,  used for lasers mostly
+/** 
+ * @typedef {Object} Vector
+ * @property {number} X
+ * @property {number} y 
+ */
+/** this function is used for finding the point where a ray hits things,  used for lasers mostly
+ * @param {Vector} v1 
+ * @param {Vector} v1End 
+ * @param {*} domains 
+ */
 function vertexCollision(v1, v1End, domains) {  //= [map, body, [playerBody, playerHead]]     //m.isCloak ? [map, body] : [map, body, [playerBody, playerHead]]
     let results
     let best = { x: null, y: null, dist2: Infinity, who: null, v1: null, v2: null };
@@ -1865,59 +1881,3 @@ function cycle() {
         simulation.loop();
     }
 }
-
-// function cycle() {
-//     if (!simulation.paused) requestAnimationFrame(cycle);
-//     const now = Date.now();
-//     const elapsed = now - simulation.then; // calc elapsed time since last loop
-//     if (elapsed > simulation.fpsInterval) { // if enough time has elapsed, draw the next frame
-//         simulation.then = now - (elapsed % simulation.fpsInterval); // Get ready for next frame by setting then=now.   Also, adjust for fpsInterval not being multiple of 16.67
-
-//         simulation.cycle++; //tracks game cycles
-//         m.cycle++; //tracks player cycles  //used to alow time to stop for everything, but the player
-//         if (simulation.clearNow) {
-//             simulation.clearNow = false;
-//             simulation.clearMap();
-//             level.start();
-//         }
-//         simulation.loop();
-//     }
-// }
-
-// let timeStart = performance.now()
-// //0,  16.6666666666,   33.333333333333, 50.000000000
-// function cycle(timestamp) {
-//     if (!simulation.paused) requestAnimationFrame(cycle);
-//     if (timestamp - timeStart > 0) { //simulation.fpsInterval) { // if enough time has elapsed, draw the next frame
-//         console.log(timestamp - timeStart)
-//         timeStart = timestamp
-//         simulation.cycle++; //tracks game cycles
-//         m.cycle++; //tracks player cycles  //used to alow time to stop for everything, but the player
-//         if (simulation.clearNow) {
-//             simulation.clearNow = false;
-//             simulation.clearMap();
-//             level.start();
-//         }
-//         simulation.loop();
-//     }
-// }
-
-// let count = 1
-// let timeStart = performance.now()
-// const cycle = (timestamp) => {
-//     // if (timeStart === undefined) timeStart = timestamp
-//     // console.log(timestamp, timeStart)
-//     if (timestamp - timeStart > tech.brainStormDelay * count) {
-//         count++
-//         powerUps.tech.effect();
-//         document.getElementById("choose-grid").style.pointerEvents = "auto"; //turn off the normal 500ms delay
-//         document.body.style.cursor = "auto";
-//         document.getElementById("choose-grid").style.transitionDuration = "0s";
-//     }
-//     if (count < 5 && simulation.isChoosing) {
-//         requestAnimationFrame(cycle);
-//     } else {
-//         tech.isBrainstormActive = false
-//     }
-// }
-// requestAnimationFrame(cycle);

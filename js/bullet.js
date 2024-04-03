@@ -9,12 +9,6 @@ const b = {
     setFireMethod() {
         if (tech.isFireMoveLock) {
             b.fire = b.fireFloat
-            // } else if (tech.isFireNotMove) {
-            //     if (tech.isAlwaysFire) {
-            //         b.fire = b.fireAlwaysFire
-            //     } else {
-            //         b.fire = b.fireNotMove
-            //     }
         } else if (tech.isAlwaysFire) {
             b.fire = b.fireAlwaysFire
         } else {
@@ -125,11 +119,6 @@ const b = {
             simulation.updateGunHUD();
         }
     },
-    // returnGunAmmo(name) {
-    //     for (i = 0, len = b.guns.length; i < len; i++) { //find which gun 
-    //         if (b.guns[i].name === name) return b.guns[i].ammo
-    //     }
-    // },
     giveGuns(gun = "random", ammoPacks = 22) {
         if (tech.ammoCap) ammoPacks = tech.ammoCap
         if (tech.isOneGun) b.resetAllGuns();
