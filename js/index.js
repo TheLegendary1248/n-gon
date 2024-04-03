@@ -20,8 +20,10 @@ Math.seededRandom = function (min = 0, max = 1) { // in order to work 'Math.seed
 }
 //Math.seed is set to document.getElementById("seed").value in level.populate level at the start of runs
 // console.log(Math.seed)
-
-
+const testingToggle = {
+    "commit":"",
+    funcRedef:true
+}
 function shuffle(array) {
     var currentIndex = array.length,
         temporaryValue,
