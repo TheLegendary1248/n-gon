@@ -25,21 +25,35 @@ const testingToggle = {
     funcRedef:true
 }
 function shuffle(array) {
-    var currentIndex = array.length,
+    return (testingToggle.funcRedef ?
+    //"new shuffle" : Slightly shorter and one less iteration and call to Math.seededRandom; different deterministic result AFTER first call to this function
+    (array) => {
+        let i = array.length - 1
+        while(i > 0) {
+            let r = Math.floor(Math.seededRandom(0, i + 1));
+            let temp = array[i];
+            array[i--] = array[r];
+            array[r] = temp;
+        }
+        return array
+    }
+    : (array) => {
+        var currentIndex = array.length,
         temporaryValue,
         randomIndex;
-    // While there remain elements to shuffle...
-    while (0 !== currentIndex) {
-        // Pick a remaining element...
-        // randomIndex = Math.floor(Math.random() * currentIndex);
-        randomIndex = Math.floor(Math.seededRandom(0, currentIndex)) //Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
-        // And swap it with the current element.
-        temporaryValue = array[currentIndex];
-        array[currentIndex] = array[randomIndex];
-        array[randomIndex] = temporaryValue;
-    }
-    return array;
+        // While there remain elements to shuffle...
+        while (0 !== currentIndex) {
+            // Pick a remaining element...
+            // randomIndex = Math.floor(Math.random() * currentIndex);
+            randomIndex = Math.floor(Math.seededRandom(0, currentIndex)) //Math.floor(Math.random() * currentIndex);
+            currentIndex -= 1;
+            // And swap it with the current element.
+            temporaryValue = array[currentIndex];
+            array[currentIndex] = array[randomIndex];
+            array[randomIndex] = temporaryValue;
+        }
+        return array;
+    })(array)
 }
 // function vertexCollision(v1, v1End, domain, best) {
 //     let results
