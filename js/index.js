@@ -6,20 +6,12 @@ Math.hash = s => {
     return h ^ h >>> 9
 }
 
-// const date1 = new Date()
-// console.log(date1.getUTCHours())
-// document.getElementById("seed").placeholder = Math.initialSeed = String(date1.getUTCDate() * date1.getUTCFullYear()) // daily seed,  day + year
-
-// document.getElementById("seed").placeholder = Math.initialSeed = Math.floor(Date.now() % 100000) //random every time:  just the time in milliseconds UTC
-
 document.getElementById("seed").placeholder = Math.initialSeed = String(Math.floor(Date.now() % 100000))
 Math.seed = Math.abs(Math.hash(Math.initialSeed)) //update randomizer seed in case the player changed it
 Math.seededRandom = function (min = 0, max = 1) { // in order to work 'Math.seed' must NOT be undefined
     Math.seed = (Math.seed * 9301 + 49297) % 233280;
     return min + Math.seed / 233280 * (max - min);
 }
-//Math.seed is set to document.getElementById("seed").value in level.populate level at the start of runs
-// console.log(Math.seed)
 const testingToggle = {
     "commit":"",
     funcRedef:true
@@ -144,7 +136,6 @@ function beforeUnloadEventListener(event) {
 }
 // addEventListener('beforeunload', beforeUnloadEventListener);
 
-
 //collision groups
 //   cat.player | cat.map | cat.body | cat.bullet | cat.powerUp | cat.mob | cat.mobBullet | cat.mobShield | cat.phased
 const cat = {
@@ -167,28 +158,6 @@ let color = { //light
     bullet: "#000"
 }
 
-// const color = { //dark
-//     background: "#333",
-//     block: "#444",
-//     blockS: "#aab",
-//     map: "#556",
-//     bullet: "#fff"
-// }
-
-// const color = { //dark
-//     background: "#999",
-//     block: "#888",
-//     blockS: "#111",
-//     map: "#444",
-// }
-
-// shrink power up selection menu
-// if (screen.height < 800) {
-//     document.getElementById("choose-grid").style.fontSize = "1em"; //1.3em is normal
-//     if (screen.height < 600) document.getElementById("choose-grid").style.fontSize = "0.8em"; //1.3em is normal
-// }
-
-
 //**********************************************************************
 // check for URL parameters to load an experimental game
 //**********************************************************************
@@ -203,7 +172,7 @@ let color = { //light
 // &difficulty=2
 //use %20 for spaces
 //difficulty is 0 easy, 1 normal, 2 hard, 4 why
-function getUrlVars() {
+function getUrlVars() { //OLD
     let vars = {};
     window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, k, v) {
         vars[k] = v;
@@ -266,19 +235,10 @@ window.addEventListener('load', () => {
                 <div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(m.fieldUpgrades[i].name)}</div>
                 ${m.fieldUpgrades[i].description}</div>`
             }
-            // if (property === "seed") {
-            //     document.getElementById("seed").placeholder = Math.initialSeed = String(set[property])
-            //     Math.seed = Math.abs(Math.hash(Math.initialSeed))
-            //     level.populateLevels()
-            // }
             requestAnimationFrame(() => { build.sortTech('have', true) });
 
         }
-    } else if (localSettings.isTrainingNotAttempted && localSettings.runCount < 30) { //make training button more obvious for new players
-        // document.getElementById("training-button").style.border = "0px #333 solid";
-        // document.getElementById("training-button").style.fill = "rgb(0, 150, 235)" //"#fff";
-        // document.getElementById("training-button").style.background = "rgb(0, 200, 255)";
-
+    } else if (localSettings.isTrainingNotAttempted && localSettings.runCount < 30) { 
         //css classes not working for some reason
         // document.getElementById("training-button").classList.add('lore-text');
 
@@ -308,9 +268,7 @@ const ctx = canvas.getContext("2d");
 document.body.style.backgroundColor = "#fff";
 
 //disable pop up menu on right click
-document.oncontextmenu = function () {
-    return false;
-}
+document.oncontextmenu = () => false;
 
 function setupCanvas() {
     canvas.width = window.innerWidth;
@@ -335,7 +293,7 @@ for (let i = 0, len = tech.tech.length; i < len; i++) {
     if (!tech.tech[i].link) tech.tech[i].link = `<a target="_blank" href='https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(tech.tech[i].name).replace(/'/g, '%27')}&title=Special:Search' class="link">${tech.tech[i].name}</a>`
 }
 const build = {
-    pixelDraw() {
+    pixelDraw() { //UNUSED
         let count = 0
         let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         let data = imgData.data;
@@ -346,18 +304,6 @@ const build = {
                 for (let y = 0; y < canvas.height; ++y) {
                     for (let x = 0; x < canvas.width; x += 1) {
                         const index = (y * canvas.width + x) * 4;
-                        // let mag = 0;
-                        //   for (let j = 0, len = who.length; j < len; j++) {
-                        //     const dx = who[j].position.x - x;
-                        //     const dy = who[j].position.y - y;
-                        //     mag -= who[j].charge / (Math.sqrt(dx * dx + dy * dy) + 1);
-                        //   }
-
-                        //get dark
-                        // data[index + 0] *= 0.96
-                        // data[index + 1] *= 0.96
-                        // data[index + 2] *= 0.96
-                        // data[index + 3] -= 1; // alpha
 
                         //invert
                         data[index + 0] = 255 - data[index + 0] // red
@@ -366,23 +312,6 @@ const build = {
                     }
                 }
 
-                // fade alpha for all pixels
-                // for (let i = 0; i < data.length; i += 4) {
-                //     if (data[i + 3] > 0) {
-                //         data[i + 3]--;
-                //     }
-                // }
-
-                //add random speckles
-                // for (let i = 0, len = Math.floor(data.length / 15000); i < len; ++i) {
-                //     const index = Math.floor((Math.random() * data.length) / 4) * 4;
-                //     data[index + 0] = 255; // red
-                //     data[index + 1] = 255; // green
-                //     data[index + 2] = 255; // blue
-                //     data[index + 3] = Math.floor(Math.random() * Math.random() * 155); // alpha
-                // }
-
-                // ctx.putImageData(imgData, 0, 1); //pixels fall because of the 1 in third parameter
                 ctx.putImageData(imgData, 0, 0);
             }
             if (simulation.paused && m.alive) requestAnimationFrame(loop);
@@ -406,7 +335,6 @@ const build = {
             document.getElementById("choose-grid").classList.remove('choose-grid-no-images');
         }
         document.getElementById("hide-images").checked = localSettings.isHideImages
-        // console.log(localSettings.isHideImages, from)
     },
     hideHUD() {
         if (simulation.isTraining) {
@@ -533,9 +461,6 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
                            <div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(m.fieldUpgrades[m.fieldMode].name)}</div>
                            ${m.fieldUpgrades[m.fieldMode].description}</div> </div>`
         }
-        // for (let i = 0, len = b.inventory.length; i < len; i++) {
-        //     text += `<div class="pause-grid-module"><div class="grid-title"><div class="circle-grid gun"></div> &nbsp; ${build.nameLink(b.guns[b.inventory[i]].name)} - <span style="font-size:100%;font-weight: 100;">${b.guns[b.inventory[i]].ammo}</span></div> ${b.guns[b.inventory[i]].description}</div>`
-        // }
         for (let i = 0, len = b.inventory.length; i < len; i++) {
             const style = localSettings.isHideImages ? `style="height:auto;"` : `style="background-image: url('img/gun/${b.guns[b.inventory[i]].name}.webp');"`
             text += `<div class="pause-grid-module card-background" ${style} >
@@ -719,7 +644,6 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
             document.getElementById("defense-bar").style.display = "inline"
             document.getElementById("damage-bar").style.display = "inline"
         }
-        // document.body.style.overflow = "hidden"
         document.getElementById("pause-grid-left").style.display = "none"
         document.getElementById("pause-grid-right").style.display = "none"
         document.getElementById("pause-grid-right").style.opacity = "1"
@@ -797,8 +721,6 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
                 simulation.molecularMode++
                 if (simulation.molecularMode > i - 1) simulation.molecularMode = 0
                 m.fieldUpgrades[i].description = m.fieldUpgrades[i].setDescription()
-                // document.getElementById(`field-${i}`).innerHTML = `<div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(m.fieldUpgrades[i].name)}</div> ${m.fieldUpgrades[i].description}`
-
                 document.getElementById(`field-${i}`).innerHTML = `<div class="card-text">
                 <div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(m.fieldUpgrades[i].name)}</div>
                 ${m.fieldUpgrades[i].description}</div>`
@@ -869,7 +791,7 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
             }
         }
     },
-    populateGrid() { //background-color:var(--build-bg-color);
+    populateGrid() {
         let text = `
 <div class="experiment-start-box">  
     <div class="sort" style="border: 0px;">
@@ -1035,17 +957,10 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
             }
         }
         url += `&molMode=${encodeURIComponent(simulation.molecularMode)}`
-        // if (property === "molMode") {
-        //     simulation.molecularMode = Number(set[property])
-        //     m.fieldUpgrades[i].description = m.fieldUpgrades[i].setDescription()
-        //     document.getElementById(`field-${i}`).innerHTML = `<div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(m.fieldUpgrades[i].name)}</div> ${m.fieldUpgrades[i].description}`
-        // }
 
         url += `&field=${encodeURIComponent(m.fieldUpgrades[m.fieldMode].name.trim())}`
         url += `&difficulty=${simulation.difficultyMode}`
-        if (isCustom) {
-            // url += `&level=${Math.abs(Number(document.getElementById("starting-level").value))}`
-            // alert('n-gon build URL copied to clipboard.\nPaste into browser address bar.')
+        if (isCustom) { //FIXME
         } else {
             simulation.makeTextLog("n-gon build URL copied to clipboard.<br>Paste into browser address bar.")
         }
@@ -1121,16 +1036,6 @@ function openExperimentMenu() {
 
 //record settings so they can be reproduced in the experimental menu
 document.getElementById("experiment-button").addEventListener("click", () => { //setup build run
-    // let field = 0;
-    // let inventory = [];
-    // let techList = [];
-    // if (!simulation.firstRun) {
-    //     field = m.fieldMode
-    //     inventory = [...b.inventory]
-    //     for (let i = 0; i < tech.tech.length; i++) {
-    //         techList.push(tech.tech[i].count)
-    //     }
-    // }
     openExperimentMenu();
 });
 
@@ -1320,7 +1225,6 @@ window.addEventListener("keyup", function (event) {
 });
 
 window.addEventListener("keydown", function (event) {
-    // console.log(event.code)
     switch (event.code) {
         case input.key.right:
         case "ArrowRight":
@@ -1362,7 +1266,6 @@ window.addEventListener("keydown", function (event) {
                 } else if (simulation.paused) {
                     build.unPauseGrid()
                     simulation.paused = false;
-                    // level.levelAnnounce();
                     document.body.style.cursor = "none";
                     requestAnimationFrame(cycle);
                 } else if (!tech.isNoDraftPause) {
@@ -1401,7 +1304,6 @@ window.addEventListener("keydown", function (event) {
                                 }
                             }
                             m.energy = energy //return to current energy
-                            // document.getElementById("pause-field").innerHTML = `<div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${m.fieldUpgrades[m.fieldMode].name}</div> ${m.fieldUpgrades[m.fieldMode].description}`
                             document.getElementById("pause-field").style.backgroundImage = `url('img/field/${m.fieldUpgrades[m.fieldMode].name}${m.fieldMode === 0 ? Math.floor(Math.random() * 10) : ""}.webp')`
                             document.getElementById("pause-field").innerHTML = `<div class="card-text"> <div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(m.fieldUpgrades[m.fieldMode].name)}</div> ${m.fieldUpgrades[m.fieldMode].description}</div>`
                         });
@@ -1583,9 +1485,6 @@ window.addEventListener("keydown", function (event) {
                     m.immuneCycle = Infinity //you can't take damage
                 }
 
-                // m.energy = Infinity
-                // document.getElementById("health").style.display = "none"
-                // document.getElementById("health-bg").style.display = "none"
                 break
             case "n":
                 m.addHealth(Infinity)
@@ -1812,8 +1711,6 @@ if (localSettings.isAllowed && !localSettings.isEmpty) {
     document.getElementById("banned").value = localSettings.banList
 }
 document.getElementById("control-testing").style.visibility = (localSettings.loreCount === 0) ? "hidden" : "visible"
-// document.getElementById("experiment-button").style.visibility = (localSettings.loreCount === 0) ? "hidden" : "visible"
-
 input.controlTextUpdate()
 
 //**********************************************************************
@@ -1925,35 +1822,6 @@ const sound = {
     }
 }
 
-// preload images so they load cleaner
-// MDN Scripting and preloads - https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types/preload
-// if (!localSettings.isHideImages) {
-//     for (let i = 0, len = b.guns.length; i < len; i++) {
-//         const preloadLink = document.createElement("link");
-//         preloadLink.href = "img/gun/" + b.guns[i].name + ".webp";
-//         preloadLink.rel = "preload";
-//         preloadLink.as = "image";
-//         document.head.appendChild(preloadLink);
-//     }
-//     for (let i = 1, len = m.fieldUpgrades.length; i < len; i++) {
-//         const preloadLink = document.createElement("link");
-//         preloadLink.href = "img/field/" + m.fieldUpgrades[i].name + ".webp";
-//         preloadLink.rel = "preload";
-//         preloadLink.as = "image";
-//         document.head.appendChild(preloadLink);
-//     }
-//     for (let i = 0, len = tech.tech.length; i < len; i++) {
-//         if (!tech.tech[i].isJunk) {
-//             const preloadLink = document.createElement("link");
-//             preloadLink.href = "img/" + tech.tech[i].name + ".webp";
-//             preloadLink.rel = "preload";
-//             preloadLink.as = "image";
-//             document.head.appendChild(preloadLink);
-//         }
-//     }
-// }
-
-
 //preload images early
 if (!localSettings.isHideImages) {
     addEventListener("load", () => {
@@ -1968,7 +1836,6 @@ if (!localSettings.isHideImages) {
             images[i] = new Image()
             images[i].src = urls[i]
         }
-        // console.log(urls, images)
     });
     document.getElementById("choose-grid").classList.add('choose-grid');
 } else {
