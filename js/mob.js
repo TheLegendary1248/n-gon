@@ -65,7 +65,6 @@ const mobs = {
             if (!whom.shield && !whom.isShielded && whom.alive) {
                 if (tech.isIceMaxHealthLoss && whom.health > 0.66 && whom.damageReduction > 0) whom.health = 0.66
                 if (tech.isIceKill && whom.health < 0.34 && whom.damageReduction > 0 && whom.alive) {
-                    // whom.death();
                     whom.damage(Infinity);
                     simulation.drawList.push({
                         x: whom.position.x,
@@ -212,33 +211,6 @@ const mobs = {
             })
         }
     },
-    // statusBurn(who, tickDamage, cycles = 90 + Math.floor(90 * Math.random())) {
-    //   if (!who.isShielded) {
-    //     //remove other "burn" effects on this mob
-    //     let i = who.status.length
-    //     while (i--) {
-    //       if (who.status[i].type === "burn") who.status.splice(i, 1);
-    //     }
-    //     who.status.push({
-    //       effect() {
-    //         if ((simulation.cycle - this.startCycle) % 15 === 0) {
-    //           let dmg = m.dmgScale * tickDamage * 0.5 * (1 + Math.random())
-    //           who.damage(dmg);
-    //           simulation.drawList.push({ //add dmg to draw queue
-    //             x: who.position.x,
-    //             y: who.position.y,
-    //             radius: Math.log(2 * dmg + 1.1) * 40,
-    //             color: `rgba(255,${Math.floor(200*Math.random())},0,0.9)`,
-    //             time: simulation.drawTime
-    //           });
-    //         }
-    //       },
-    //       type: "burn",
-    //       endCycle: simulation.cycle + cycles,
-    //       startCycle: simulation.cycle
-    //     })
-    //   }
-    // },
     deathCount: 0,
     mobSpawnWithHealth: 1,
     setMobSpawnHealth() {
@@ -249,12 +221,9 @@ const mobs = {
     spawn(xPos, yPos, sides, radius, color) {
         let i = mob.length;
         mob[i] = Matter.Bodies.polygon(xPos, yPos, sides, radius, {
-            //inertia: Infinity, //prevents rotation
             mob: true,
             density: 0.001,
-            //friction: 0,
             frictionAir: 0.005,
-            //frictionStatic: 0,
             restitution: 0.5,
             collisionFilter: {
                 group: 0,
@@ -284,7 +253,7 @@ const mobs = {
                 x: xPos,
                 y: yPos
             },
-            status: [], // [ { effect(), endCycle } ]
+            status: [],
             checkStatus() {
                 let j = this.status.length;
                 while (j--) {
@@ -359,13 +328,6 @@ const mobs = {
                                     this.seePlayer.position.x = history.position.x;
                                     this.seePlayer.position.y = history.position.y;
                                     this.seePlayer.yes = true;
-                                    //draw the history location found for testing purposes
-                                    // ctx.beginPath();
-                                    // ctx.moveTo(this.position.x, this.position.y);
-                                    // ctx.lineTo(history.position.x, history.position.y);
-                                    // ctx.lineWidth = 5;
-                                    // ctx.strokeStyle = "#000";
-                                    // ctx.stroke();
                                     break
                                 }
                             }
@@ -378,7 +340,6 @@ const mobs = {
                     if (
                         this.distanceToPlayer2() < this.seeAtDistance2 &&
                         Matter.Query.ray(map, this.position, this.playerPosRandomY()).length === 0 &&
-                        // Matter.Query.ray(body, this.position, this.playerPosRandomY()).length === 0 &&
                         !m.isCloak
                     ) {
                         this.foundPlayer();
@@ -414,7 +375,6 @@ const mobs = {
                 const dir = { x: Math.cos(this.angle), y: Math.sin(this.angle) };
                 //the dot product of diff and dir will return how much over lap between the vectors
                 const dot = Vector.dot(dir, diff);
-                // console.log(Math.cos(dot)*180/Math.PI)
                 if (dot > threshold) {
                     return true;
                 } else {
@@ -428,7 +388,6 @@ const mobs = {
                     if (
                         this.distanceToPlayer2() < this.seeAtDistance2 &&
                         Matter.Query.ray(map, this.position, this.playerPosRandomY()).length === 0 &&
-                        // Matter.Query.ray(body, this.position, this.playerPosRandomY()).length === 0 &&
                         !m.isCloak
                     ) {
                         this.foundPlayer();
@@ -454,25 +413,6 @@ const mobs = {
                     y: player.position.y + (Math.random() - 0.5) * 110
                 };
             },
-            // hacked() { //set this.hackedTarget variable before running this method
-            //   //find a new target
-            //   if (!(simulation.cycle % this.seePlayerFreq)) {
-            //     this.hackedTarget = null
-            //     for (let i = 0, len = mob.length; i < len; i++) {
-            //       if (mob[i] !== this) {
-            //         // const DIST = Vector.magnitude(Vector.sub(this.position, mob[j]));
-            //         if (Matter.Query.ray(map, this.position, mob[i].position).length === 0 &&
-            //           Matter.Query.ray(body, this.position, mob[i].position).length === 0) {
-            //           this.hackedTarget = mob[i]
-            //         }
-            //       }
-            //     }
-            //   }
-            //   //acceleration towards targets
-            //   if (this.hackedTarget) {
-            //     this.force = Vector.mult(Vector.normalise(Vector.sub(this.hackedTarget.position, this.position)), this.mass * 0.0015)
-            //   }
-            // },
             harmZone() {
                 if (this.seePlayer.yes) {
                     ctx.setLineDash([125 * Math.random(), 125 * Math.random()]);
@@ -593,8 +533,6 @@ const mobs = {
                         const goal = Vector.add(this.position, Vector.mult(unit, stepRange))
                         this.springTarget.x = goal.x;
                         this.springTarget.y = goal.y;
-                        // this.springTarget.x = this.seePlayer.position.x;
-                        // this.springTarget.y = this.seePlayer.position.y;
                         this.cons.length = -200;
                         this.cons2.length = 100 + 1.5 * this.radius;
                     } else if (!(simulation.cycle % this.seePlayerFreq)) {
@@ -602,8 +540,6 @@ const mobs = {
                         const goal = Vector.add(this.position, Vector.mult(unit, stepRange))
                         this.springTarget2.x = goal.x;
                         this.springTarget2.y = goal.y;
-                        // this.springTarget2.x = this.seePlayer.position.x;
-                        // this.springTarget2.y = this.seePlayer.position.y;
                         this.cons.length = 100 + 1.5 * this.radius;
                         this.cons2.length = -200;
                     }
@@ -644,29 +580,6 @@ const mobs = {
                                 this.cons.length = 100 + 1.5 * this.radius;
                                 this.cons2.length = 100 + 1.5 * this.radius;
                             }
-
-
-
-                            // if (!(simulation.cycle % (this.seePlayerFreq * 2))) {
-                            //     const unit = Vector.normalise(Vector.sub(this.seePlayer.position, this.position))
-                            //     const goal = Vector.add(this.position, Vector.mult(unit, stepRange))
-                            //     this.springTarget.x = goal.x;
-                            //     this.springTarget.y = goal.y;
-                            //     // this.springTarget.x = this.seePlayer.position.x;
-                            //     // this.springTarget.y = this.seePlayer.position.y;
-                            //     this.cons.length = -200;
-                            //     this.cons2.length = 100 + 1.5 * this.radius;
-                            // } else if (!(simulation.cycle % this.seePlayerFreq)) {
-                            //     const unit = Vector.normalise(Vector.sub(this.seePlayer.position, this.position))
-                            //     const goal = Vector.add(this.position, Vector.mult(unit, stepRange))
-                            //     this.springTarget2.x = goal.x;
-                            //     this.springTarget2.y = goal.y;
-                            //     // this.springTarget2.x = this.seePlayer.position.x;
-                            //     // this.springTarget2.y = this.seePlayer.position.y;
-                            //     this.cons.length = 100 + 1.5 * this.radius;
-                            //     this.cons2.length = -200;
-                            // }
-
                         }
                     }
                 }
@@ -695,13 +608,6 @@ const mobs = {
                                     })
                                 }
                                 if (isAntiGravity) array[i].force.y -= 0.8 * simulation.g * array[i].mass
-                                // //draw curl, for debugging
-                                // ctx.beginPath();
-                                // ctx.moveTo(array[i].position.x, array[i].position.y);
-                                // ctx.lineTo(array[i].position.x + curlVector.x * 10, array[i].position.y + curlVector.y * 10);
-                                // ctx.lineWidth = 2;
-                                // ctx.strokeStyle = "#000";
-                                // ctx.stroke();
                             }
                         }
                     }
@@ -709,14 +615,6 @@ const mobs = {
                 applyCurl(this.position, mob, false);
                 applyCurl(this.position, body);
                 applyCurl(this.position, powerUp);
-                // applyCurl(this.position, bullet);  // too powerful, just stops all bullets need to write a curl function just for bullets
-                // applyCurl(this.position, [player]);
-
-                //draw limit
-                // ctx.beginPath();
-                // ctx.arc(this.position.x, this.position.y, range, 0, 2 * Math.PI);
-                // ctx.fillStyle = "rgba(55,255,255, 0.1)";
-                // ctx.fill();
             },
             pullPlayer() {
                 if (this.seePlayer.yes && Vector.magnitudeSquared(Vector.sub(this.position, player.position)) < 1000000) {
@@ -737,10 +635,6 @@ const mobs = {
                 }
             },
             repelBullets() {
-                // if (this.seePlayer.yes) {
-                // ctx.lineWidth = "8";
-                // ctx.strokeStyle = this.fill;
-                // ctx.beginPath();
                 for (let i = 0, len = bullet.length; i < len; ++i) {
                     const dx = bullet[i].position.x - this.position.x;
                     const dy = bullet[i].position.y - this.position.y;
@@ -754,8 +648,6 @@ const mobs = {
                         bullet[i].force.y += mag * Math.sin(angle);
                     }
                 }
-                // ctx.stroke();
-                // }
             },
             attraction() {
                 //accelerate towards the player
@@ -769,7 +661,6 @@ const mobs = {
             repulsion() {
                 //accelerate towards the player
                 if (this.seePlayer.recall && this.distanceToPlayer2() < this.repulsionRange) {
-                    // && dx * dx + dy * dy < 2000000) {
                     const forceMag = this.accelMag * this.mass;
                     const angle = Math.atan2(this.seePlayer.position.y - this.position.y, this.seePlayer.position.x - this.position.x);
                     this.force.x -= 2 * forceMag * Math.cos(angle);
@@ -794,34 +685,12 @@ const mobs = {
                     }
                 }
             },
-            // invulnerability() {
-            //     if (this.isInvulnerable) {
-            //         if (this.invulnerabilityCountDown > 0) {
-            //             this.invulnerabilityCountDown--
-            //             //graphics //draw a super shield?
-            //             ctx.beginPath();
-            //             let vertices = this.vertices;
-            //             ctx.moveTo(vertices[0].x, vertices[0].y);
-            //             for (let j = 1; j < vertices.length; j++) ctx.lineTo(vertices[j].x, vertices[j].y);
-            //             ctx.lineTo(vertices[0].x, vertices[0].y);
-            //             ctx.lineWidth = 20;
-            //             // ctx.fillStyle = `rgba(${Math.floor(255 * Math.random())},${Math.floor(255 * Math.random())},${Math.floor(255 * Math.random())},0.5)`
-            //             // ctx.fill();
-            //             ctx.strokeStyle = "rgba(255,255,255,0.4)";
-            //             ctx.stroke();
-            //         } else {
-            //             this.isInvulnerable = false
-            //             this.damageReduction = this.startingDamageReduction
-            //         }
-            //     }
-            // },
             grow() {
                 if (this.seePlayer.recall) {
                     if (this.radius < 80) {
                         const scale = 1.01;
                         Matter.Body.scale(this, scale, scale);
                         this.radius *= scale;
-                        // this.torque = -0.00002 * this.inertia;
                         this.fill = `hsl(144, ${this.radius}%, 50%)`;
                         if (this.isShielded) { //remove shield if shielded when growing
                             this.isShielded = false;
@@ -852,11 +721,6 @@ const mobs = {
 
                     const sub = Vector.sub(this.searchTarget, this.position);
                     if (Vector.magnitude(sub) > this.radius * 2) {
-                        // ctx.beginPath();
-                        // ctx.strokeStyle = "#aaa";
-                        // ctx.moveTo(this.position.x, this.position.y);
-                        // ctx.lineTo(this.searchTarget.x,this.searchTarget.y);
-                        // ctx.stroke();
                         //accelerate at 0.1 of normal acceleration
                         this.force = Vector.mult(Vector.normalise(sub), this.accelMag * this.mass * 0.2);
                     } else {
@@ -885,14 +749,13 @@ const mobs = {
                     }
                     ctx.lineTo(this.position.x, this.position.y);
                     ctx.lineWidth = radius * 2;
-                    ctx.strokeStyle = this.stroke; //"rgba(0,0,0,0.5)"; //'#000'
+                    ctx.strokeStyle = this.stroke;
                     ctx.stroke();
                 }
             },
             drift() {
                 //teleport towards player as a way to move
                 if (this.seePlayer.recall && !(simulation.cycle % this.blinkRate)) {
-                    // && !m.lookingAtMob(this,0.5)){
                     ctx.beginPath();
                     ctx.moveTo(this.position.x, this.position.y);
                     const dist = Vector.sub(this.seePlayer.position, this.position);
@@ -953,7 +816,6 @@ const mobs = {
                         x: Math.cos(angle),
                         y: Math.sin(angle)
                     }, this.fireDir)
-                    // c = Math.cos(angle) * this.fireDir.x + Math.sin(angle) * this.fireDir.y;
                     const threshold = 0.1;
                     if (dot > threshold) {
                         this.torque += 0.000004 * this.inertia;
@@ -978,25 +840,8 @@ const mobs = {
                     this.noseLength -= this.fireFreq / 2;
                     setNoseShape();
                 }
-                // else if (this.noseLength < -0.1) {
-                //   this.noseLength += this.fireFreq / 4;
-                //   setNoseShape();
-                // }
+                
             },
-            // launch() {
-            //     if (this.seePlayer.recall) {
-            //       //fire
-            //       spawn.seeker(this.vertices[1].x, this.vertices[1].y, 5 + Math.ceil(this.radius / 15), 5);
-            //       const v = 15;
-            //       Matter.Body.setVelocity(mob[mob.length - 1], {
-            //         x: this.velocity.x + this.fireDir.x * v + Math.random(),
-            //         y: this.velocity.y + this.fireDir.y * v + Math.random()
-            //       });
-            //       // recoil
-            //       this.force.x -= 0.005 * this.fireDir.x * this.mass;
-            //       this.force.y -= 0.005 * this.fireDir.y * this.mass;
-            //     }
-            // },
             turnToFacePlayer() {
                 //turn to face player
                 const dx = player.position.x - this.position.x;
@@ -1004,11 +849,6 @@ const mobs = {
                 const dist = this.distanceToPlayer();
                 const angle = this.angle + Math.PI / 2;
                 c = Math.cos(angle) * dx - Math.sin(angle) * dy;
-                // if (c > 0.04) {
-                //   Matter.Body.rotate(this, 0.01);
-                // } else if (c < 0.04) {
-                //   Matter.Body.rotate(this, -0.01);
-                // }
                 if (c > 0.04 * dist) {
                     this.torque += 0.002 * this.mass;
                 } else if (c < 0.04) {
@@ -1114,7 +954,6 @@ const mobs = {
                     }
 
                     this.health -= dmg
-                    //this.fill = this.color + this.health + ')';
                     this.onDamage(dmg); //custom damage effects
                     if ((this.health < 0.01 || isNaN(this.health)) && this.alive) this.death();
                 }
@@ -1128,32 +967,6 @@ const mobs = {
                 // to use declare custom method in mob spawn
             },
             damageReduction: 1,
-            // damageReductionGoal: 0.001, //must add this to boss set up:   me.damageReduction = 0.25
-            // damageReductionScale: 0.004, //for bosses in this.onDamage  determines the impact of dmg on damageReductionGoal
-            // armor() { //slowly reduce damage reduction, for bosses
-            //     if (this.seePlayer.recall) {
-            //         if (this.damageReductionGoal > 0.24) {
-            //             this.damageReductionGoal = 0.25
-            //         } else {
-            //             this.damageReductionGoal = this.damageReductionGoal * 0.999 + 0.001 * 0.25 //smooth the goal towards 0.25 damage reduction
-            //         }
-            //         this.damageReduction = this.damageReduction * 0.995 + 0.005 * this.damageReductionGoal //smooth damage reduction towards the goal
-            //         // console.log(`damageReduction = ${this.damageReduction.toFixed(4)}`, `damageReductionGoal = ${this.damageReductionGoal.toFixed(4)}`)
-            //     }
-            //     //draw armor
-            //     //draw body
-            //     ctx.beginPath();
-            //     const vertices = this.vertices;
-            //     ctx.moveTo(vertices[0].x, vertices[0].y);
-            //     for (let j = 1, len = vertices.length; j < len; ++j) {
-            //         ctx.lineTo(vertices[j].x, vertices[j].y);
-            //     }
-            //     ctx.lineTo(vertices[0].x, vertices[0].y);
-            //     console.log(this.damageReduction, this.damageReductionGoal)
-            //     ctx.lineWidth = 3 //60 * (0.25 - this.damageReductionGoal)
-            //     ctx.strokeStyle = `rgba(255,255,255,${4.1*(0.25 - this.damageReductionGoal)})` //"rgba(150,150,225,0.5)";
-            //     ctx.stroke();
-            // },
             leaveBody: true,
             isDropPowerUp: true,
             death() {
@@ -1339,21 +1152,13 @@ const mobs = {
                             ctx.strokeStyle = "rgba(0,80,80,1)";
                             ctx.stroke();
                         }
-                        //draw AOE
-                        // simulation.drawList.push({ //add dmg to draw queue
-                        //     x: this.position.x,
-                        //     y: this.position.y,
-                        //     radius: radius,
-                        //     color: "rgba(0,80,80,0.03)",
-                        //     time: 15
-                        // });
                     }
                 }
             },
             removeConsBB() {
                 for (let i = 0, len = consBB.length; i < len; ++i) {
                     if (consBB[i].bodyA === this) {
-                        if (consBB[i].bodyB.shield) { //&& !this.shield
+                        if (consBB[i].bodyB.shield) {
                             consBB[i].bodyB.do = function () { this.death() }
                         }
                         consBB[i].bodyA = consBB[i].bodyB;
@@ -1392,7 +1197,7 @@ const mobs = {
                 if (this.leaveBody && body.length < 40 && this.mass < 200 && this.radius > 18) {
                     let v = Matter.Vertices.hull(Matter.Vertices.clockwiseSort(this.vertices)) //might help with vertex collision issue, not sure
                     if (v.length > 5 && body.length < 35 && Math.random() < 0.25) {
-                        const cutPoint = 3 + Math.floor((v.length - 6) * Math.random()) //Math.floor(v.length / 2)
+                        const cutPoint = 3 + Math.floor((v.length - 6) * Math.random()) 
                         const v2 = v.slice(0, cutPoint + 1)
                         v = v.slice(cutPoint - 1)
                         const len = body.length;
@@ -1456,7 +1261,6 @@ const mobs = {
                         if (!who.isNotHoldable) {
                             b.targetedBlock(who)
                             Matter.Body.setAngularVelocity(who, (0.5 + 0.2 * Math.random()) * (Math.random() < 0.5 ? -1 : 1));
-                            // who.torque += who.inertia * 0.002 * (Math.random() - 0.5)
                         }
                     }
                 } else {
