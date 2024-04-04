@@ -14,10 +14,6 @@ const Engine = Matter.Engine,
 // create an engine
 const engine = Engine.create();
 engine.world.gravity.scale = 0; //turn off gravity (it's added back in later)
-// engine.velocityIterations = 100
-// engine.positionIterations = 100
-// engine.enableSleeping = true
-
 // matter events
 function playerOnGroundCheck(event) {
     //runs on collisions events
@@ -107,7 +103,6 @@ function collisionChecks(event) {
                         !mob[k].isSlowed && !mob[k].isStunned
                     ) {
                         let dmg = Math.min(Math.max(0.025 * Math.sqrt(mob[k].mass), 0.05), 0.3) * simulation.dmgScale; //player damage is capped at 0.3*dmgScale of 1.0
-                        // if (m.isCloak) dmg *= 0.5
                         mob[k].foundPlayer();
                         if (tech.isRewindAvoidDeath && m.energy > 0.85 * Math.min(1, m.maxEnergy) && dmg > 0.01) { //CPT reversal runs in m.damage, but it stops the rest of the collision code here too
                             m.damage(dmg);
@@ -182,27 +177,6 @@ function collisionChecks(event) {
                                 color: 'rgba(0, 171, 238, 0.7)',
                                 time: 32
                             });
-                            // simulation.drawList.push({ //add dmg to draw queue
-                            //     x: m.pos.x,
-                            //     y: m.pos.y,
-                            //     radius: 150,
-                            //     color: 'rgba(0, 171, 238, 0.33)',
-                            //     time: 6
-                            // });
-                            // simulation.drawList.push({ //add dmg to draw queue
-                            //     x: m.pos.x,
-                            //     y: m.pos.y,
-                            //     radius: 75,
-                            //     color: 'rgba(0, 171, 238, 0.5)',
-                            //     time: 16
-                            // });
-                            // simulation.drawList.push({ //add dmg to draw queue
-                            //     x: m.pos.x,
-                            //     y: m.pos.y,
-                            //     radius: 25,
-                            //     color: 'rgba(0, 171, 238, 0.75)',
-                            //     time: 25
-                            // });
                         }
                         if (tech.isHarpoonDefense) { //fire harpoons at mobs after getting hit
                             const maxCount = 10 + 3 * tech.extraHarpoons //scale the number of hooks fired
@@ -257,7 +231,7 @@ function collisionChecks(event) {
                             obj.beforeDmg(mob[k]); //some bullets do actions when they hits things, like despawn //forces don't seem to work here
                             let dmg = m.dmgScale * (obj.dmg + 0.15 * obj.mass * Vector.magnitude(Vector.sub(mob[k].velocity, obj.velocity)))
                             if (tech.isCrit && mob[k].isStunned) dmg *= 4
-                            // console.log(dmg) //remove this
+                            // console.log(dmg) //remove this //thelegendary1248:well now i don't wanna
                             mob[k].damage(dmg);
                             if (mob[k].alive) mob[k].foundPlayer();
                             if (mob[k].damageReduction) {
