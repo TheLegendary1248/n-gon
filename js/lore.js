@@ -9,24 +9,11 @@ const lore = {
     testSpeechAPI() {
         if ('speechSynthesis' in window) { // Synthesis support. Make your web apps talk!
             lore.isSpeech = true
-            // const utterance = new SpeechSynthesisUtterance("test");
-            // utterance.volume = 0; // 0 to 1
-            // speechSynthesis.speak(utterance);
-            // utterance.onerror = () => { //if speech doesn't work
-            //     lore.isSpeech = false
-            // }
-            // speechFrozen = setTimeout(() => { // speech frozen after 15 seconds of no end
-            //     console.log('speech frozen')
-            //     lore.isSpeech = false
-            // }, 5000);
-            // utterance.onend = () => {
-            //     clearTimeout(speechFrozen);
-            // }
         } else {
             lore.isSpeech = false
         }
     },
-    rate: 1, //   //utterance.rate = 1; // 0.1 to 10
+    rate: 1,
     nextSentence() {
         if (m.alive && !simulation.isCheating) {
             lore.sentence++
@@ -37,7 +24,6 @@ const lore = {
         if (localSettings.loreCount < 1) localSettings.loreCount = 1
         if (localSettings.isAllowed) localStorage.setItem("localSettings", JSON.stringify(localSettings)); //update local storage
         document.getElementById("control-testing").style.visibility = (localSettings.loreCount === 0) ? "hidden" : "visible"
-        // document.getElementById("experiment-button").style.visibility = (localSettings.loreCount === 0) ? "hidden" : "visible"
         simulation.makeTextLog(`<span class='color-var'>lore</span>.unlockTesting()`, Infinity);
 
         sound.portamento(50)
@@ -65,10 +51,8 @@ const lore = {
                 lore.talkingColor = this.color
                 if (lore.isSpeech) {
                     const utterance = new SpeechSynthesisUtterance(say);
-                    // utterance.voice = lore.anand.voice
                     utterance.lang = "en-GB" //"en-IN"; //de-DE  en-GB  fr-FR  en-US en-AU
                     utterance.volume = 0.2; // 0 to 1
-                    // if (lore.rate !== 1) utterance.rate = lore.rate
                     speechSynthesis.speak(utterance);
                     utterance.onerror = () => { //if speech doesn't work
                         lore.isSpeech = false
@@ -99,10 +83,8 @@ const lore = {
                 lore.talkingColor = this.color
                 if (lore.isSpeech) {
                     utterance = new SpeechSynthesisUtterance(say);
-                    // utterance.voice = lore.anand.voice
                     utterance.lang = "en-AU";
                     utterance.volume = 0.2; // 0 to 1
-                    // if (lore.rate !== 1) utterance.rate = lore.rate
                     speechSynthesis.speak(utterance);
                     utterance.onerror = () => { //if speech doesn't work
                         lore.isSpeech = false
@@ -1202,21 +1184,6 @@ const lore = {
 // How to get to the console in safari:
 // Option + ⌘ + C
 // http://xahlee.info/comp/unicode_computing_symbols.html
-
-
-// speech: function(say) {
-//   var utterance = new SpeechSynthesisUtterance(say);
-//   //msg.voice = voices[10]; // Note: some voices don't support altering params
-//   //msg.voiceURI = 'native';
-//   //utterance.volume = 1; // 0 to 1
-//   //utterance.rate = 1; // 0.1 to 10
-//   //utterance.pitch = 1; //0 to 2
-//   //utterance.text = 'Hello World';
-//   //http://stackoverflow.com/questions/14257598/what-are-language-codes-for-voice-recognition-languages-in-chromes-implementati
-//   //de-DE  en-GB  fr-FR  en-US en-AU
-//   utterance.lang = "en-GB";
-//   speechSynthesis.speak(utterance);
-// }
 
 /* <option value="en-GB">GB</option>
 <option value="en-US">US</option>
