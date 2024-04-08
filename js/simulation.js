@@ -100,11 +100,8 @@ const simulation = {
         simulation.isTimeSkipping = true;
         for (let i = 0; i < cycles; i++) {
             simulation.cycle++;
-            // m.walk_cycle += (m.flipLegs * m.Vx) * 0.5; //makes the legs look like they are moving fast this is just gonna run for each method call since it needs some tweaking
             simulation.gravity();
             Engine.update(engine, simulation.delta);
-            // level.custom();
-            // level.customTopLayer();
             if (!m.isBodiesAsleep) mobs.loop();
             if (m.fieldMode !== 7) m.hold();
             b.bulletRemove();
@@ -127,43 +124,6 @@ const simulation = {
             simulation.ephemera[i].do();
         }
     },
-    // timeMobSkip() {
-    //     simulation.gravity();
-    //     Engine.update(engine, simulation.delta);
-    //     simulation.wipe();
-    //     simulation.textLog();
-    //     if (m.onGround) {
-    //         m.groundControl()
-    //     } else {
-    //         m.airControl()
-    //     }
-    //     m.move();
-    //     m.look();
-    //     simulation.camera();
-    //     level.custom();
-    //     powerUps.do();
-    //     mobs.draw();
-    //     simulation.draw.cons();
-    //     simulation.draw.body();
-    //     if (!m.isBodiesAsleep) {
-    //         // mobs.loop();
-    //     }
-    //     mobs.healthBar();
-    //     m.draw();
-    //     m.hold();
-    //     // v.draw(); //working on visibility work in progress
-    //     level.customTopLayer();
-    //     simulation.draw.drawMapPath();
-    //     b.fire();
-    //     b.bulletRemove();
-    //     b.bulletDraw();
-    //     if (!m.isBodiesAsleep) b.bulletDo();
-    //     simulation.drawCircle();
-    //     // simulation.clip();
-    //     ctx.restore();
-    //     simulation.drawCursor();
-    //     // simulation.pixelGraphics();
-    // },
     mouse: {
         x: canvas.width / 2,
         y: canvas.height / 2
@@ -197,34 +157,15 @@ const simulation = {
     accelScale: null, //set in levels.setDifficulty
     CDScale: null, //set in levels.setDifficulty
     molecularMode: Math.floor(4 * Math.random()), //0 spores, 1 missile, 2 ice IX, 3 drones //randomize molecular assembler field type
-    // dropFPS(cap = 40, time = 15) {
-    //   simulation.fpsCap = cap
-    //   simulation.fpsInterval = 1000 / simulation.fpsCap;
-    //   simulation.defaultFPSCycle = simulation.cycle + time
-    //   const normalFPS = function () {
-    //     if (simulation.defaultFPSCycle < simulation.cycle) {
-    //       simulation.fpsCap = 72
-    //       simulation.fpsInterval = 1000 / simulation.fpsCap;
-    //     } else {
-    //       requestAnimationFrame(normalFPS);
-    //     }
-    //   };
-    //   requestAnimationFrame(normalFPS);
-    // },
-    // clip() {
-
-    // },
     pixelGraphics() {
         //copy current canvas pixel data
         let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         let data = imgData.data;
         //change pixel data
 
-
-        // const off = 4 * Math.floor(x) + 4 * canvas.width * Math.floor(y);
         // multiple windows
         for (let i = data.length / 2; i < data.length; i += 4) {
-            index = i % (canvas.width * canvas.height * 2) // + canvas.width*4*canvas.height
+            index = i % (canvas.width * canvas.height * 2)
 
             data[i + 0] = data[index + 0]; // red
             data[i + 1] = data[index + 1]; // red
@@ -235,60 +176,6 @@ const simulation = {
         for (let x = 0; x < len; x++) {
 
         }
-
-
-
-        // const startX = 2 * canvas.width + 2 * canvas.width * canvas.height
-        // const endX = 4 * canvas.width + 4 * canvas.width * canvas.height
-        // const startY = 2 * canvas.width + 2 * canvas.width * canvas.height
-        // const endY = 4 * canvas.width + 4 * canvas.width * canvas.height
-        // for (let x = startX; x < endX; x++) {
-        //   for (let y = startY; y < endY; y++) {
-
-        //   }
-        // }
-
-
-
-
-        //strange draw offset
-        // const off = canvas.height * canvas.width * 4 / 2
-        // for (let index = 0; index < data.length; index += 4) {
-        //   data[index + 0] = data[index + 0 + off]; // red
-        //   data[index + 1] = data[index + 1 + off]; // red
-        //   data[index + 2] = data[index + 2 + off]; // red
-        //   data[index + 3] = data[index + 3 + off]; // red
-        // }
-
-        //change all pixels
-        // for (let index = 0; index < data.length; index += 4) {
-        // data[index + 0] = 255; // red
-        // data[index + 1] = 255; // green
-        // data[index + 2] = 255; // blue
-        // data[index + 3] = 255; // alpha 
-        // }
-
-        //change random pixels
-        // for (let i = 0, len = Math.floor(data.length / 10); i < len; ++i) {
-        //   const index = Math.floor((Math.random() * data.length) / 4) * 4;
-        //   data[index + 0] = 255; // red
-        //   data[index + 1] = 0; // green
-        //   data[index + 2] = 0; // blue
-        //   data[index + 3] = 255 //Math.floor(Math.random() * Math.random() * 255); // alpha
-        // }
-
-        // //change random pixels
-        // for (let i = 0, len = Math.floor(data.length / 1000); i < len; ++i) {
-        //   const index = Math.floor((Math.random() * data.length) / 4) * 4;
-        //   // data[index] = data[index] ^ 255; // Invert Red
-        //   // data[index + 1] = data[index + 1] ^ 255; // Invert Green
-        //   // data[index + 2] = data[index + 2] ^ 255; // Invert Blue
-        //   data[index + 0] = 0; // red
-        //   data[index + 1] = 0; // green
-        //   data[index + 2] = 0; // blue
-        //   // data[index + 3] = 255 //Math.floor(Math.random() * Math.random() * 255); // alpha
-        // }
-
         //draw new pixel data to canvas
         ctx.putImageData(imgData, 0, 0);
     },
@@ -376,7 +263,6 @@ const simulation = {
                         x: bolts[i].x,
                         y: bolts[i].y,
                         radius: 1.5 + 5 * Math.random(),
-                        // color: "rgba(0,155,155,0.7)",
                         color: bolts[i].color,
                         time: Math.floor(9 + 25 * Math.random() * Math.random())
                     });
@@ -446,10 +332,6 @@ const simulation = {
     },
     lastLogTime: 0,
     isTextLogOpen: true,
-    // <!-- <path d="M832.41,106.64 V323.55 H651.57 V256.64 c0-82.5,67.5-150,150-150 Z" fill="#789" stroke="none" />
-    // <path d="M827,112 h30 a140,140,0,0,1,140,140 v68 h-167 z" fill="#7ce" stroke="none" /> -->
-    // SVGleftMouse: '<svg viewBox="750 0 200 765" class="mouse-icon" width="40px" height = "60px" stroke-linecap="round" stroke-linejoin="round" stroke-width="25px" stroke="#000" fill="none">  <path fill="#fff" stroke="none" d="M827,112 h30 a140,140,0,0,1,140,140 v268 a140,140,0,0,1-140,140 h-60 a140,140,0,0,1-140-140v-268 a140,140,0,0,1,140-140h60" />  <path d="M832.41,106.64 V323.55 H651.57 V256.64 c0-82.5,67.5-150,150-150 Z" fill="#149" stroke="none" />  <path fill="none" d="M827,112 h30 a140,140,0,0,1,140,140 v268 a140,140,0,0,1-140,140 h-60 a140,140,0,0,1-140-140v-268 a140,140,0,0,1,140-140h60" />  <path d="M657 317 h 340 h-170 v-207" />  <ellipse fill="#fff" cx="827.57" cy="218.64" rx="29" ry="68" />  </svg>',
-    // SVGrightMouse: '<svg viewBox="750 0 200 765" class="mouse-icon" width="40px" height = "60px" stroke-linecap="round" stroke-linejoin="round" stroke-width="25px" stroke="#000" fill="none">  <path fill="#fff" stroke="none" d="M827,112 h30 a140,140,0,0,1,140,140 v268 a140,140,0,0,1-140,140 h-60 a140,140,0,0,1-140-140v-268 a140,140,0,0,1,140-140h60" />  <path d="M827,112 h30 a140,140,0,0,1,140,140 v68 h-167 z" fill="#0cf" stroke="none" />  <path fill="none" d="M827,112 h30 a140,140,0,0,1,140,140 v268 a140,140,0,0,1-140,140 h-60 a140,140,0,0,1-140-140v-268 a140,140,0,0,1,140-140h60" />  <path d="M657 317 h 340 h-170 v-207" />  <ellipse fill="#fff" cx="827.57" cy="218.64" rx="29" ry="68" />  </svg>',
     makeTextLog(text, time = 240) {
         if (!localSettings.isHideHUD && simulation.isTextLogOpen && !build.isExperimentSelection) {
             if (simulation.lastLogTime > m.cycle) { //if there is an older message
@@ -465,7 +347,6 @@ const simulation = {
     textLog() {
         if (simulation.lastLogTime && simulation.lastLogTime < m.cycle) {
             simulation.lastLogTime = 0;
-            // document.getElementById("text-log").innerHTML = " ";
             document.getElementById("text-log").style.display = "none";
         }
     },
@@ -616,7 +497,6 @@ const simulation = {
     cameraNoLook() {
         ctx.save();
         ctx.translate(canvas.width2, canvas.height2); //center
-        // ctx.scale(simulation.zoom / simulation.edgeZoomOutSmooth, simulation.zoom / simulation.edgeZoomOutSmooth); //zoom in once centered
         ctx.translate(-canvas.width2 + m.transX, -canvas.height2 + m.transY); //translate
         //calculate in game mouse position by undoing the zoom and translations
         simulation.mouseInGame.x = (simulation.mouse.x - canvas.width2) / simulation.zoom * simulation.edgeZoomOutSmooth + canvas.width2 - m.transX;
@@ -643,38 +523,6 @@ const simulation = {
             }
         }, len * swapPeriod);
     },
-    // warp(translation = 5, skew = 0.05, scale = 0.05) {
-    // if (simulation.cycle % 2) { //have to alternate frames or else successive rumbles over write the effects of the previous rumble
-    // requestAnimationFrame(() => { ctx.setTransform(1, 0, 0, 1, 0, 0); }) //reset
-    // requestAnimationFrame(() => {
-    //     if (!simulation.paused && m.alive) {
-    //         ctx.transform(1 - scale * (Math.random() - 0.5), skew * (Math.random() - 0.5), skew * (Math.random() - 0.5), 1 - scale * (Math.random() - 0.5), translation * (Math.random() - 0.5), translation * (Math.random() - 0.5)); //ctx.transform(Horizontal scaling. A value of 1 results in no scaling,  Vertical skewing,   Horizontal skewing,   Vertical scaling. A value of 1 results in no scaling,   Horizontal translation (moving),   Vertical translation (moving)) //https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/setTransform
-    //     }
-    // })
-
-    //reset
-    // ctx.transform(1, 0, 0, 1, 0, 0); //ctx.transform(Horizontal scaling. A value of 1 results in no scaling,  Vertical skewing,   Horizontal skewing,   Vertical scaling. A value of 1 results in no scaling,   Horizontal translation (moving),   Vertical translation (moving)) //https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/setTransform
-
-    // }
-    // const loop = () => {
-    //     if (!simulation.paused && m.alive) {
-    //         ctx.save();
-    //         ctx.transform(1 - scale * (Math.random() - 0.5), skew * (Math.random() - 0.5), skew * (Math.random() - 0.5), 1 - scale * (Math.random() - 0.5), translation * (Math.random() - 0.5), translation * (Math.random() - 0.5)); //ctx.transform(Horizontal scaling. A value of 1 results in no scaling,  Vertical skewing,   Horizontal skewing,   Vertical scaling. A value of 1 results in no scaling,   Horizontal translation (moving),   Vertical translation (moving))
-    //         requestAnimationFrame(() => { ctx.restore(); })
-    //     }
-    // }
-    // requestAnimationFrame(loop);
-
-    // function loop() {
-    //     if (!simulation.paused && m.alive) {
-    //         ctx.save();
-    //         ctx.transform(1 - scale * (Math.random() - 0.5), skew * (Math.random() - 0.5), skew * (Math.random() - 0.5), 1 - scale * (Math.random() - 0.5), translation * (Math.random() - 0.5), translation * (Math.random() - 0.5)); //ctx.transform(Horizontal scaling. A value of 1 results in no scaling,  Vertical skewing,   Horizontal skewing,   Vertical scaling. A value of 1 results in no scaling,   Horizontal translation (moving),   Vertical translation (moving))
-    //         requestAnimationFrame(() => { ctx.restore(); })
-    //     }
-    //     requestAnimationFrame(loop);
-    // }
-    // requestAnimationFrame(loop);
-    // },
     wipe() { }, //set in simulation.startGame
     gravity() {
         function addGravity(bodies, magnitude) {
@@ -692,11 +540,6 @@ const simulation = {
     splashReturn() {
         document.getElementById("previous-seed").innerHTML = `previous seed: <span style="font-size:80%;">${Math.initialSeed}</span><br>`
         document.getElementById("seed").value = Math.initialSeed = Math.seed //randomize initial seed
-
-        //String(document.getElementById("seed").value)
-        // Math.seed = Math.abs(Math.hash(Math.initialSeed)) //update randomizer seed in case the player changed it
-
-
         simulation.clearTimeouts();
         simulation.onTitlePage = true;
         document.getElementById("splash").onclick = function () {
@@ -742,14 +585,12 @@ const simulation = {
             simulation.isTraining = false
         }
         simulation.onTitlePage = false;
-        // document.getElementById("choose-grid").style.display = "none"
         document.getElementById("choose-grid").style.visibility = "hidden"
         document.getElementById("choose-grid").style.opacity = "0"
         document.getElementById("experiment-grid").style.display = "none"
         document.getElementById("info").style.display = "none";
         document.getElementById("experiment-button").style.display = "none";
         document.getElementById("training-button").style.display = "none";
-        // document.getElementById("experiment-button").style.opacity = "0";
         document.getElementById("splash").onclick = null; //removes the onclick effect so the function only runs once
         document.getElementById("splash").style.display = "none"; //hides the element that spawned the function
         document.getElementById("dmg").style.display = "inline";
@@ -766,8 +607,6 @@ const simulation = {
         }
         document.getElementById("guns").style.display = "inline"
         document.getElementById("field").style.display = "inline"
-
-        // document.body.style.overflow = "hidden"
         document.getElementById("pause-grid-left").style.display = "none"
         document.getElementById("pause-grid-right").style.display = "none"
         document.getElementById("pause-grid-right").style.opacity = "1"
@@ -778,7 +617,6 @@ const simulation = {
             ctx.setTransform(1, 0, 0, 1, 0, 0); //reset warp effect
             ctx.setLineDash([]) //reset stroke dash effect
         })
-        // ctx.shadowColor = '#000';
         if (!m.isShipMode) {
             m.resetSkin() //set the play draw to normal, undoing some junk tech
             m.spawn(); //spawns the player
@@ -813,7 +651,6 @@ const simulation = {
         simulation.isChoosing = false;
         b.setFireMethod()
         b.setFireCD();
-        // simulation.updateTechHUD();
         for (let i = 0; i < b.guns.length; i++) b.guns[i].isRecentlyShown = false //reset recently shown back to zero
         for (let i = 0; i < m.fieldUpgrades.length; i++) m.fieldUpgrades[i].isRecentlyShown = false //reset recently shown back to zero
         for (let i = 0; i < tech.tech.length; i++) tech.tech[i].isRecentlyShown = false //reset recently shown back to zero
@@ -826,9 +663,6 @@ const simulation = {
         powerUps.boost.endCycle = 0
         powerUps.isFieldSpawned = false
         m.setFillColors();
-        // m.maxHealth = 1
-        // m.maxEnergy = 1
-        // m.energy = 1
         input.isPauseKeyReady = true
         simulation.wipe = function () { //set wipe to normal
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -855,17 +689,9 @@ const simulation = {
         document.getElementById("text-log").style.display = "none"
         document.getElementById("fade-out").style.opacity = 0;
         document.title = "n-gon";
-        // simulation.makeTextLog(`input.key.up<span class='color-symbol'>:</span> ["<span class='color-text'>${input.key.up}</span>", "<span class='color-text'>ArrowUp</span>"]`);
-        // simulation.makeTextLog(`input.key.left<span class='color-symbol'>:</span> ["<span class='color-text'>${input.key.left}</span>", "<span class='color-text'>ArrowLeft</span>"]`);
-        // simulation.makeTextLog(`input.key.down<span class='color-symbol'>:</span> ["<span class='color-text'>${input.key.down}</span>", "<span class='color-text'>ArrowDown</span>"]`);
-        // simulation.makeTextLog(`input.key.right<span class='color-symbol'>:</span> ["<span class='color-text'>${input.key.right}</span>", "<span class='color-text'>ArrowRight</span>"]`);
         simulation.makeTextLog(`Math.seed <span class='color-symbol'>=</span> ${Math.initialSeed}`);
         simulation.makeTextLog(`<span class='color-var'>const</span> engine <span class='color-symbol'>=</span> Engine.create(); <em>//simulation begin</em>`);
         simulation.makeTextLog(`engine.timing.timeScale <span class='color-symbol'>=</span> 1`);
-        // simulation.makeTextLog(`input.key.field<span class='color-symbol'>:</span> ["<span class='color-text'>${input.key.field}</span>", "<span class='color-text'>MouseRight</span>"]`);
-
-        // document.getElementById("health").style.display = "inline"
-        // document.getElementById("health-bg").style.display = "inline"
         m.alive = true;
         m.onGround = false
         m.lastOnGroundCycle = 0
@@ -876,23 +702,10 @@ const simulation = {
 
         //set to default field
         tech.healMaxEnergyBonus = 0
-        // m.setMaxEnergy();
         m.energy = 0
         m.immuneCycle = 0;
-        // simulation.makeTextLog(`${simulation.SVGrightMouse}<strong style='font-size:30px;'> ${m.fieldUpgrades[m.fieldMode].name}</strong><br><span class='faded'></span><br>${m.fieldUpgrades[m.fieldMode].description}`, 600);
-        // simulation.makeTextLog(`
-        // input.key.up <span class='color-symbol'>=</span> ["<span class='color-text'>${input.key.up}</span>", "<span class='color-text'>ArrowUp</span>"]
-        // <br>input.key.left <span class='color-symbol'>=</span> ["<span class='color-text'>${input.key.left}</span>", "<span class='color-text'>ArrowLeft</span>"]
-        // <br>input.key.down <span class='color-symbol'>=</span> ["<span class='color-text'>${input.key.down}</span>", "<span class='color-text'>ArrowDown</span>"]
-        // <br>input.key.right <span class='color-symbol'>=</span> ["<span class='color-text'>${input.key.right}</span>", "<span class='color-text'>ArrowRight</span>"]
-        // <br>
-        // <br><span class='color-var'>m</span>.fieldMode <span class='color-symbol'>=</span> "<span class='color-text'>${m.fieldUpgrades[m.fieldMode].name}</span>"
-        // <br>input.key.field <span class='color-symbol'>=</span> ["<span class='color-text'>${input.key.field}</span>", "<span class='color-text'>right mouse</span>"]
-        // <br><span class='color-var'>m</span>.field.description <span class='color-symbol'>=</span> "<span class='color-text'>${m.fieldUpgrades[m.fieldMode].description}</span>"
-        // `, 800);
         m.coupling = 0
         m.setField(0) //this calls m.couplingChange(), which sets max health and max energy
-        // m.energy = 0;
         //exit testing
         if (simulation.testing) {
             simulation.testing = false;
@@ -995,11 +808,6 @@ const simulation = {
                                 }
                             }
                         }
-
-
-
-
-
                     }
                     if (isNaN(player.position.x)) m.death();
                     if (m.lastKillCycle + 300 > m.cycle) { //effects active for 5 seconds after killing a mob
@@ -1135,15 +943,6 @@ const simulation = {
                 simulation.updateGunHUD();
             }
 
-            // for (i = 0, len = b.guns.length; i < len; i++) { //find which gun is mine
-            //     if (b.guns[i].name === "mine") {
-            //         b.guns[i].ammo += count
-            //         if (tech.ammoCap) b.guns[i].ammo = Math.min(tech.ammoCap, b.guns[i].ammo)
-            //         simulation.updateGunHUD();
-            //         break;
-            //     }
-            // }
-
             if (tech.isMutualism && !tech.isEnergyHealth) {
                 for (let i = 0; i < bullet.length; i++) {
                     if (bullet[i].isMutualismActive) {
@@ -1173,11 +972,8 @@ const simulation = {
         let holdTarget = (m.holdingTarget) ? m.holdingTarget : undefined //if player is holding something this remembers it before it gets deleted
         tech.deathSpawnsFromBoss = 0;
         simulation.fallHeight = 3000;
-        document.body.style.backgroundColor = "#eee" //"#d8dadf";
-        // color.map = "#444";
-        // color.bullet = "#FFFFFF";
+        document.body.style.backgroundColor = "#eee" 
         color = { //light
-            // background: "#ddd", // used instead:  document.body.style.backgroundColor
             block: "rgba(140,140,140,0.85)",
             blockS: "#222",
             map: "#444",
@@ -1305,7 +1101,6 @@ const simulation = {
         }
 
         function removeAll(array) {
-            // for (let i = 0; i < array.length; ++i) Matter.Composite.remove(engine.world, array[i]);
             for (let i = 0; i < array.length; ++i) Matter.Composite.remove(engine.world, array[i]);
         }
         removeAll(map);
@@ -1345,35 +1140,6 @@ const simulation = {
         simulation.fpsCap = simulation.fpsCapDefault
         simulation.fpsInterval = 1000 / simulation.fpsCap;
     },
-    // getCoords: {
-    //   //used when building maps, outputs a draw rect command to console, only works in testing mode
-    //   pos1: {
-    //     x: 0,
-    //     y: 0
-    //   },
-    //   pos2: {
-    //     x: 0,
-    //     y: 0
-    //   },
-    //   out() {
-    //     if (keys[49]) {
-    //       simulation.getCoords.pos1.x = Math.round(simulation.mouseInGame.x / 25) * 25;
-    //       simulation.getCoords.pos1.y = Math.round(simulation.mouseInGame.y / 25) * 25;
-    //     }
-    //     if (keys[50]) {
-    //       //press 1 in the top left; press 2 in the bottom right;copy command from console
-    //       simulation.getCoords.pos2.x = Math.round(simulation.mouseInGame.x / 25) * 25;
-    //       simulation.getCoords.pos2.y = Math.round(simulation.mouseInGame.y / 25) * 25;
-    //       window.getSelection().removeAllRanges();
-    //       var range = document.createRange();
-    //       range.selectNode(document.getElementById("test"));
-    //       window.getSelection().addRange(range);
-    //       document.execCommand("copy");
-    //       window.getSelection().removeAllRanges();
-    //       console.log(`spawn.mapRect(${simulation.getCoords.pos1.x}, ${simulation.getCoords.pos1.y}, ${simulation.getCoords.pos2.x - simulation.getCoords.pos1.x}, ${simulation.getCoords.pos2.y - simulation.getCoords.pos1.y}); //`);
-    //     }
-    //   }
-    // },
     testingOutput() {
         ctx.fillStyle = "#000";
         ctx.textAlign = "center";
@@ -1414,18 +1180,6 @@ const simulation = {
                 const collisionLines = [];
                 for (const line of lines) {
                     if (line.length == 2) {
-                        // const distance1 = Math.sqrt((line[0].x - c.x) ** 2 + (line[0].y - c.y) ** 2)
-                        // const angle1 = Math.atan2(line[0].y - c.y, line[0].x - c.x);
-                        // const queryPoint1 = {
-                        //     x: Math.cos(angle1) * (distance1 - 1) + c.x,
-                        //     y: Math.sin(angle1) * (distance1 - 1) + c.y
-                        // }
-                        // const distance2 = Math.sqrt((line[1].x - c.x) ** 2 + (line[1].y - c.y) ** 2)
-                        // const angle2 = Math.atan2(line[1].y - c.y, line[1].x - c.x);
-                        // const queryPoint2 = {
-                        //     x: Math.cos(angle2) * (distance2 - 1) + c.x,
-                        //     y: Math.sin(angle2) * (distance2 - 1) + c.y
-                        // }
                         collisionLines.push(line)
                     }
                 }
@@ -1505,8 +1259,6 @@ const simulation = {
                 for (var i = 0; i < obj.vertices.length; i++) {
                     const vertex = obj.vertices[i];
                     const angleToVertex = Math.atan2(vertex.y - pos.y, vertex.x - pos.x);
-                    // const distanceToVertex = Math.sqrt((vertex.x - pos.x) ** 2 + (vertex.y - pos.y) ** 2);
-                    // const queryPoint = { x: Math.cos(angleToVertex) * (distanceToVertex - 1) + pos.x, y: Math.sin(angleToVertex) * (distanceToVertex - 1) + pos.y }
                     const queryPoint = { x: Math.cos(angleToVertex + Math.PI) + vertex.x, y: Math.sin(angleToVertex + Math.PI) + vertex.y }
 
                     if (Matter.Query.ray(map, pos, queryPoint).length == 0) {
@@ -1544,13 +1296,8 @@ const simulation = {
             const circleCollisions = [];
             for (const line of outerCollisions) {
                 for (const vertex of line) {
-                    // console.log('hi')
                     const distance = Math.sqrt((vertex.x - pos.x) ** 2 + (vertex.y - pos.y) ** 2)
                     const angle = Math.atan2(vertex.y - pos.y, vertex.x - pos.x);
-                    // const queryPoint = {
-                    //     x: Math.cos(angle) * (distance - 1) + pos.x,
-                    //     y: Math.sin(angle) * (distance - 1) + pos.y
-                    // }
                     const queryPoint = { x: Math.cos(angle + Math.PI) + vertex.x, y: Math.sin(angle + Math.PI) + vertex.y }
 
                     if (Math.abs(distance - radius) < 1 && Matter.Query.ray(map, pos, queryPoint).length == 0) circleCollisions.push(vertex)
@@ -1592,74 +1339,6 @@ const simulation = {
         },
     },
     draw: {
-        // powerUp() { //is set by Bayesian tech
-        //     // ctx.globalAlpha = 0.4 * Math.sin(m.cycle * 0.15) + 0.6;
-        //     // for (let i = 0, len = powerUp.length; i < len; ++i) {
-        //     //   ctx.beginPath();
-        //     //   ctx.arc(powerUp[i].position.x, powerUp[i].position.y, powerUp[i].size, 0, 2 * Math.PI);
-        //     //   ctx.fillStyle = powerUp[i].color;
-        //     //   ctx.fill();
-        //     // }
-        //     // ctx.globalAlpha = 1;
-        // },
-        // powerUpNormal() { //back up in case power up draw gets changed
-        //     ctx.globalAlpha = 0.4 * Math.sin(m.cycle * 0.15) + 0.6;
-        //     for (let i = 0, len = powerUp.length; i < len; ++i) {
-        //         ctx.beginPath();
-        //         ctx.arc(powerUp[i].position.x, powerUp[i].position.y, powerUp[i].size, 0, 2 * Math.PI);
-        //         ctx.fillStyle = powerUp[i].color;
-        //         ctx.fill();
-        //     }
-        //     ctx.globalAlpha = 1;
-        // },
-        // powerUpBonus() { //draws crackle effect for bonus power ups
-        //     ctx.globalAlpha = 0.4 * Math.sin(m.cycle * 0.15) + 0.6;
-        //     for (let i = 0, len = powerUp.length; i < len; ++i) {
-        //         ctx.beginPath();
-        //         ctx.arc(powerUp[i].position.x, powerUp[i].position.y, powerUp[i].size, 0, 2 * Math.PI);
-        //         ctx.fillStyle = powerUp[i].color;
-        //         ctx.fill();
-        //     }
-        //     ctx.globalAlpha = 1;
-        //     for (let i = 0, len = powerUp.length; i < len; ++i) {
-        //         if (powerUp[i].isDuplicated && Math.random() < 0.1) {
-        //             //draw electricity
-        //             const mag = 5 + powerUp[i].size / 5
-        //             let unit = Vector.rotate({
-        //                 x: mag,
-        //                 y: mag
-        //             }, 2 * Math.PI * Math.random())
-        //             let path = {
-        //                 x: powerUp[i].position.x + unit.x,
-        //                 y: powerUp[i].position.y + unit.y
-        //             }
-        //             ctx.beginPath();
-        //             ctx.moveTo(path.x, path.y);
-        //             for (let i = 0; i < 6; i++) {
-        //                 unit = Vector.rotate(unit, 3 * (Math.random() - 0.5))
-        //                 path = Vector.add(path, unit)
-        //                 ctx.lineTo(path.x, path.y);
-        //             }
-        //             ctx.lineWidth = 0.5 + 2 * Math.random();
-        //             ctx.strokeStyle = "#000"
-        //             ctx.stroke();
-        //         }
-        //     }
-        // },
-
-        // map: function() {
-        //     ctx.beginPath();
-        //     for (let i = 0, len = map.length; i < len; ++i) {
-        //         let vertices = map[i].vertices;
-        //         ctx.moveTo(vertices[0].x, vertices[0].y);
-        //         for (let j = 1; j < vertices.length; j += 1) {
-        //             ctx.lineTo(vertices[j].x, vertices[j].y);
-        //         }
-        //         ctx.lineTo(vertices[0].x, vertices[0].y);
-        //     }
-        //     ctx.fillStyle = "#444";
-        //     ctx.fill();
-        // },
         mapPath: null, //holds the path for the map to speed up drawing
         setPaths() {
             //runs at each new level to store the path for the map since the map doesn't change
@@ -1687,14 +1366,6 @@ const simulation = {
                 intersections = simulation.sight.getIntersections(obj.vertices[obj.vertices.length - 1], obj.vertices[0], restOfMap);
                 newVertices.push(obj.vertices[obj.vertices.length - 1]);
                 for (const vertex of intersections) newVertices.push({ x: vertex.x, y: vertex.y });
-                //draw the vertices as black circles for debugging
-                // for (const vertex of newVertices) {
-                //     ctx.beginPath();
-                //     ctx.moveTo(vertex.x, vertex.y);
-                //     ctx.arc(vertex.x, vertex.y, 10, 0, 2 * Math.PI);
-                //     ctx.fillStyle = '#000';
-                //     ctx.fill()
-                // }
                 simulation.sight.intersectMap.push({ vertices: newVertices });
             }
         },
@@ -1742,10 +1413,6 @@ const simulation = {
                     ctx.fill();
                     ctx.globalCompositeOperation = "source-over";
 
-                    // make map visible
-                    // ctx.fill(simulation.draw.mapPath);
-                    // ctx.fillStyle = "#000";
-
                     ctx.clip(); //this doesn't seem to be required, but it helps with performance, probably stops the canvas context from drawing the whole map
                 }
             }
@@ -1770,7 +1437,6 @@ const simulation = {
             ctx.beginPath();
             for (let i = 0, len = cons.length; i < len; ++i) {
                 ctx.moveTo(cons[i].pointA.x, cons[i].pointA.y);
-                // ctx.lineTo(cons[i].bodyB.position.x, cons[i].bodyB.position.y);
                 ctx.lineTo(cons[i].bodyB.position.x + cons[i].pointB.x, cons[i].bodyB.position.y + cons[i].pointB.y);
             }
             for (let i = 0, len = consBB.length; i < len; ++i) {
@@ -1778,18 +1444,13 @@ const simulation = {
                 ctx.lineTo(consBB[i].bodyB.position.x, consBB[i].bodyB.position.y);
             }
             ctx.lineWidth = 2;
-            // ctx.strokeStyle = "#999";
             ctx.strokeStyle = "rgba(0,0,0,0.15)";
             ctx.stroke();
         },
         wireFrame() {
-            // ctx.textAlign = "center";
-            // ctx.textBaseline = "middle";
-            // ctx.fillStyle = "#999";
             const bodies = Composite.allBodies(engine.world);
             ctx.beginPath();
             for (let i = 0; i < bodies.length; ++i) {
-                //ctx.fillText(bodies[i].id,bodies[i].position.x,bodies[i].position.y);  //shows the id of every body
                 let vertices = bodies[i].vertices;
                 ctx.moveTo(vertices[0].x, vertices[0].y);
                 for (let j = 1; j < vertices.length; j++) {
@@ -1812,8 +1473,6 @@ const simulation = {
             ctx.lineTo(bodyDraw[0].x, bodyDraw[0].y);
             ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
             ctx.fill();
-            // ctx.strokeStyle = "#000";
-            // ctx.stroke();
             //main body
             ctx.beginPath();
             bodyDraw = playerBody.vertices;
@@ -1824,7 +1483,6 @@ const simulation = {
             ctx.lineTo(bodyDraw[0].x, bodyDraw[0].y);
             ctx.fillStyle = "rgba(0, 255, 255, 0.25)";
             ctx.fill();
-            // ctx.stroke();
             //head
             ctx.beginPath();
             bodyDraw = playerHead.vertices;
@@ -1835,7 +1493,6 @@ const simulation = {
             ctx.lineTo(bodyDraw[0].x, bodyDraw[0].y);
             ctx.fillStyle = "rgba(255, 255, 0, 0.4)";
             ctx.fill();
-            // ctx.stroke();
             //head sensor
             ctx.beginPath();
             bodyDraw = headSensor.vertices;
@@ -1846,7 +1503,6 @@ const simulation = {
             ctx.lineTo(bodyDraw[0].x, bodyDraw[0].y);
             ctx.fillStyle = "rgba(0, 0, 255, 0.25)";
             ctx.fill();
-            // ctx.stroke();
         }
     },
     checkLineIntersection(v1, v1End, v2, v2End) {
@@ -1917,7 +1573,6 @@ const simulation = {
                 const y = round(simulation.constructMouseDownPosition.y)
                 const dx = Math.max(25, round(simulation.mouseInGame.x) - x)
                 const dy = Math.max(25, round(simulation.mouseInGame.y) - y)
-                // console.log(e.button)
                 if (e.button === 1) {
                     if (level.isProcedural) {
                         simulation.outputMapString(`spawn.randomMob(x+${x}, ${y}, 0);\n`);
@@ -1965,7 +1620,7 @@ const simulation = {
         });
 
         //undo last element added after you press z
-        document.body.addEventListener("keydown", (e) => { // e.keyCode   z=90  m=77 b=66  shift = 16  c = 67
+        document.body.addEventListener("keydown", (e) => { 
             if (simulation.testing && e.keyCode === 90 && simulation.constructMapString.length) {
                 if (simulation.constructMapString[simulation.constructMapString.length - 1][6] === 'm') { //remove map from current level
                     const index = map.length - 1
@@ -1999,40 +1654,4 @@ const simulation = {
         });
         document.getElementById("construct").innerHTML = outHTML
     },
-    // copyToClipBoard(value) {
-    //     // Create a fake textarea
-    //     const textAreaEle = document.createElement('textarea');
-
-    //     // Reset styles
-    //     textAreaEle.style.border = '0';
-    //     textAreaEle.style.padding = '0';
-    //     textAreaEle.style.margin = '0';
-
-    //     // Set the absolute position
-    //     // User won't see the element
-    //     textAreaEle.style.position = 'absolute';
-    //     textAreaEle.style.left = '-9999px';
-    //     textAreaEle.style.top = `0px`;
-
-    //     // Set the value
-    //     textAreaEle.value = value
-
-    //     // Append the textarea to body
-    //     document.body.appendChild(textAreaEle);
-
-    //     // Focus and select the text
-    //     textAreaEle.focus();
-    //     textAreaEle.select();
-
-    //     // Execute the "copy" command
-    //     try {
-    //         document.execCommand('copy');
-    //     } catch (err) {
-    //         // Unable to copy
-    //         console.log(err)
-    //     } finally {
-    //         // Remove the textarea
-    //         document.body.removeChild(textAreaEle);
-    //     }
-    // },
 };
