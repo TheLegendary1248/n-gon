@@ -169,15 +169,15 @@ function beforeUnloadEventListener(event) {
 //collision groups
 //   cat.player | cat.map | cat.body | cat.bullet | cat.powerUp | cat.mob | cat.mobBullet | cat.mobShield | cat.phased
 const cat = {
-    player: 0x1,
-    map: 0x10,
-    body: 0x100,
-    bullet: 0x1000,
-    powerUp: 0x10000,
-    mob: 0x100000,
-    mobBullet: 0x1000000,
-    mobShield: 0x10000000,
-    phased: 0x100000000,
+    player: 1<<0,
+    map: 1<<1,
+    body: 1<<2,
+    bullet: 1<<3,
+    powerUp: 1<<4,
+    mob: 1<<5,
+    mobBullet: 1<<6,
+    mobShield: 1<<7,
+    phased: 1<<8,
 }
 
 let color = { //light
