@@ -202,7 +202,7 @@ let color = { //light
 // &difficulty=2
 //use %20 for spaces
 //difficulty is 0 easy, 1 normal, 2 hard, 4 why
-function getUrlVars() { //OLD
+function getUrlVars() { //OLD: Use web api in place here to grab params
     let vars = {};
     window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, k, v) {
         vars[k] = v;
@@ -216,7 +216,7 @@ window.addEventListener('load', () => {
         openExperimentMenu();
         //add experimental selections based on url
         for (const property in set) {
-            set[property] = set[property].replace(/%20/g, " ")
+            set[property] = set[property].replace(/%20/g, " ")//FIX
             set[property] = set[property].replace(/%27/g, "'")
             set[property] = set[property].replace(/%CE%A8/g, "Ψ")
             if (property === "field") {
@@ -295,26 +295,20 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 // const ctx = canvas.getContext('2d', { alpha: false }); //optimization, this works if you wipe with the background color of each level
 
-document.body.style.backgroundColor = "#fff";
+// document.body.style.backgroundColor = "#fff"; //CHECK 
 
 //disable pop up menu on right click
 document.oncontextmenu = () => false;
 
 function setupCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    canvas.width2 = canvas.width / 2; //precalculated because I use this often (in mouse look)
-    canvas.height2 = canvas.height / 2;
+    canvas.widthHalf = canvas.width2 = (canvas.width = window.innerWidth) / 2; //precalculated because I use this often (in mouse look)
+    canvas.heightHalf = canvas.height2 = (canvas.height = window.innerHeight) / 2;
     ctx.font = "25px Arial";
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
+    ctx.lineJoin = ctx.lineCap = "round";
     simulation.setZoom();
 }
 setupCanvas();
-window.onresize = () => {
-    setupCanvas();
-};
-
+window.onresize = setupCanvas;
 //**********************************************************************
 // experimental build grid display and pause
 //**********************************************************************
@@ -324,6 +318,8 @@ for (let i = 0, len = tech.tech.length; i < len; i++) {
 }
 const build = {
     pixelDraw() { //UNUSED
+        alert("this function is infact used")
+        throw new Error("pixelDraw is used")
         let count = 0
         let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         let data = imgData.data;
