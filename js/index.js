@@ -202,63 +202,36 @@ let color = { //light
 // &difficulty=2
 //use %20 for spaces
 //difficulty is 0 easy, 1 normal, 2 hard, 4 why
-function getUrlVars() { //OLD: Use web api in place here to grab params
-    let vars = {};
-    window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, k, v) {
-        vars[k] = v;
-    });
-    return vars;
-}
 window.addEventListener('load', () => {
-    const set = getUrlVars()
-    if (Object.keys(set).length !== 0) {
+    const set = new URLSearchParams(window.location.search)
+    console.log(set)
+    if (set.size !== 0) {
         // build.populateGrid() //trying to solve a bug with this, but maybe it doesn't help
         openExperimentMenu();
         //add experimental selections based on url
-        for (const property in set) {
-            set[property] = set[property].replace(/%20/g, " ")//FIX
-            set[property] = set[property].replace(/%27/g, "'")
-            set[property] = set[property].replace(/%CE%A8/g, "Ψ")
+        for (const [property, value] of set) { //TODO This could be simplified further, but it's also not bad now
             if (property === "field") {
-                let found = false
-                let index
-                for (let i = 0; i < m.fieldUpgrades.length; i++) {
-                    if (set[property] === m.fieldUpgrades[i].name) {
-                        index = i;
-                        found = true;
-                        break;
-                    }
-                }
-                if (found) build.choosePowerUp(index, 'field')
+                let i = m.fieldUpgrades.findIndex(e => e.name == value)
+                if(i != -1)
+                    build.choosePowerUp(i, 'field')
             }
             if (property.substring(0, 3) === "gun") {
-                let found = false
-                let index
-                for (let i = 0; i < b.guns.length; i++) {
-                    if (set[property] === b.guns[i].name) {
-                        index = i;
-                        found = true;
-                        break;
-                    }
-                }
-                if (found) build.choosePowerUp(index, 'gun')
+                let i = b.guns.findIndex(e => e.name == value)
+                if(i != -1)
+                    build.choosePowerUp(i, 'gun')
             }
             if (property.substring(0, 4) === "tech") {
-                for (let i = 0; i < tech.tech.length; i++) {
-                    if (set[property] === tech.tech[i].name) {
-                        build.choosePowerUp(i, 'tech', true)
-                        break;
-                    }
-                }
+                let i = tech.tech.findIndex(e => e.name == value)
+                if(i != -1)
+                    build.choosePowerUp(i, 'tech', true)
             }
-
             if (property === "difficulty") {
-                simulation.difficultyMode = Number(set[property])
+                simulation.difficultyMode = Number(value)
                 lore.setTechGoal()
-                document.getElementById("difficulty-select-experiment").value = Number(set[property])
+                document.getElementById("difficulty-select-experiment").value = Number(value)
             }
             if (property === "molMode") {
-                simulation.molecularMode = Number(set[property])
+                simulation.molecularMode = Number(value)
                 const i = 4 //update experiment text
                 m.fieldUpgrades[i].description = m.fieldUpgrades[i].setDescription()
                 document.getElementById(`field-${i}`).innerHTML = `<div class="card-text">
@@ -266,9 +239,8 @@ window.addEventListener('load', () => {
                 ${m.fieldUpgrades[i].description}</div>`
             }
             requestAnimationFrame(() => { build.sortTech('have', true) });
-
         }
-    } else if (localSettings.isTrainingNotAttempted && localSettings.runCount < 30) { 
+    } else if (localSettings.isTrainingNotAttempted && localSettings.runCount < 30) { //TODO I'm pretty sure we can change those svg's to regular HTML?
         //css classes not working for some reason
         // document.getElementById("training-button").classList.add('lore-text');
 

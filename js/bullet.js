@@ -5282,6 +5282,21 @@ const b = {
     //9 harpoon
     //10 mine
     //11 laser
+    /** *****  Guns  *****  
+     * 0 nail gun  
+     * 1 shotgun  
+     * 2 super balls  
+     * 3 wave  
+     * 4 missiles  
+     * 5 grenades  
+     * 6 spores  
+     * 7 drones  
+     * 8 foam  
+     * 9 harpoon  
+     * 10 mine  
+     * 11 laser  
+     * @type {[Object]}
+     */
     guns: [
         {
             name: "nail gun", // 0

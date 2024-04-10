@@ -2789,6 +2789,9 @@ const m = {
         m.fieldUpgrades[index].effect();
         simulation.makeTextLog(`<span class='color-var'>m</span>.setField("<span class='color-text'>${m.fieldUpgrades[m.fieldMode].name}</span>")`);
     },
+    /**
+     * @type {[Object]}
+     */
     fieldUpgrades: [{
         name: "field emitter",
         imageNumber: Math.floor(Math.random() * 26), //pick one of the 25 field emitter image files at random

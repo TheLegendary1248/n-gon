@@ -302,6 +302,7 @@ const tech = {
             }
         }
     },
+    /** @type {[Object]} */
     tech: [{
         name: "tungsten carbide",
         description: "<strong>+300</strong> maximum <strong class='color-h'>health</strong><br><strong>lose</strong> <strong class='color-h'>health</strong> after hard <strong>landings</strong>",
