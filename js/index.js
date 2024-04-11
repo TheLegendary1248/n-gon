@@ -1,5 +1,11 @@
 "use strict";
+function createElementFromHTML(htmlString) {
+  var div = document.createElement('div');
+  div.innerHTML = htmlString.trim();
 
+  // Change this to div.childNodes to support multiple top-level nodes.
+  return div.firstChild;
+}
 /** Hash function
  * @param {number}
  * @returns {number}
@@ -204,7 +210,6 @@ let color = { //light
 //difficulty is 0 easy, 1 normal, 2 hard, 4 why
 window.addEventListener('load', () => {
     const set = new URLSearchParams(window.location.search)
-    console.log(set)
     if (set.size !== 0) {
         // build.populateGrid() //trying to solve a bug with this, but maybe it doesn't help
         openExperimentMenu();
@@ -258,7 +263,6 @@ window.addEventListener('load', () => {
     }
 });
 
-
 //**********************************************************************
 //set up canvas
 //**********************************************************************
@@ -285,9 +289,9 @@ window.onresize = setupCanvas;
 // experimental build grid display and pause
 //**********************************************************************
 //set wikipedia link
-for (let i = 0, len = tech.tech.length; i < len; i++) {
-    if (!tech.tech[i].link) tech.tech[i].link = `<a target="_blank" href='https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(tech.tech[i].name).replace(/'/g, '%27')}&title=Special:Search' class="link">${tech.tech[i].name}</a>`
-}
+for (let i = 0, len = tech.tech.length; i < len; i++) //FIX Check 'replace' here. Probably unecessary 
+    tech.tech[i].link ??= `<a target="_blank" href='https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(tech.tech[i].name)/* .replace(/'/g, '%27') */}&title=Special:Search' class="link">${tech.tech[i].name}</a>`
+
 const build = {
     pixelDraw() { //UNUSED
         alert("this function is infact used")
@@ -317,7 +321,7 @@ const build = {
         requestAnimationFrame(loop);
     },
     showImages(from) { //on click event:  from all 3 different places to hide / show images 
-        localSettings.isHideImages = !localSettings.isHideImages
+        document.getElementById("hide-images").checked = localSettings.isHideImages = !localSettings.isHideImages
         if (localSettings.isAllowed) localStorage.setItem("localSettings", JSON.stringify(localSettings)); //update local storage
         if (from === 'experiment') {
             build.reset();
@@ -325,24 +329,15 @@ const build = {
             build.unPauseGrid()
             build.pauseGrid() //redraw pause text with images
         }
-        if (localSettings.isHideImages) {
-            document.getElementById("choose-grid").classList.add('choose-grid-no-images');
-            document.getElementById("choose-grid").classList.remove('choose-grid');
-        } else {
-            document.getElementById("choose-grid").classList.add('choose-grid');
-            document.getElementById("choose-grid").classList.remove('choose-grid-no-images');
-        }
-        document.getElementById("hide-images").checked = localSettings.isHideImages
+        let gridClassList = document.getElementById("choose-grid").classList //FIX Use CSS(maybe)
+        gridClassList.add(localSettings.isHideImages ? 'choose-grid-no-images' : 'choose-grid')
+        gridClassList.remove(!localSettings.isHideImages ? 'choose-grid-no-images' : 'choose-grid')
     },
     hideHUD() {
-        if (simulation.isTraining) {
-            localSettings.isHideHUD = false
-        } else {
-            localSettings.isHideHUD = !localSettings.isHideHUD
-        }
+        let elem = document.getElementById("hide-hud")
+        elem.checked = localSettings.isHideHUD = simulation.isTraining ? false : !localSettings.isHideHUD
+        elem.classList.toggle("ticked")
         if (localSettings.isAllowed) localStorage.setItem("localSettings", JSON.stringify(localSettings)); //update local storage
-        document.getElementById("hide-hud").checked = localSettings.isHideHUD
-        document.getElementById("hide-hud").classList.toggle("ticked")
         simulation.removeEphemera("dmgDefBars")
         if (!localSettings.isHideHUD) {
             simulation.ephemera.push({
@@ -365,15 +360,10 @@ const build = {
     },
     pauseGrid() {
         build.generatePauseLeft() //makes the left side of the pause menu with the tech
-        build.generatePauseRight() //makes the right side of the pause menu with the tech
+        build.generatePauseRight(); //makes the right side of the pause menu with the tech
         // build.sortTech('') //sorts tech into the order the player got them using tech.tech[i].cycle = m.cycle
-        document.getElementById("tech").style.display = "none"
-        document.getElementById("guns").style.display = "none"
-        document.getElementById("field").style.display = "none"
-        document.getElementById("health").style.display = "none"
-        document.getElementById("health-bg").style.display = "none"
-        document.getElementById("defense-bar").style.display = "none"
-        document.getElementById("damage-bar").style.display = "none"
+        //TODO Use CSS
+        ["tech","guns","field","health","health-bg","defense-bar","damage-bar"].forEach(e => document.getElementById(e).style.display = "none")
         //show in game console
         simulation.lastLogTime = m.cycle //hide in game console
     },
@@ -389,7 +379,7 @@ const build = {
         if (tech.dynamoBotCount) botText += `<br>dynamo-bots: ${tech.dynamoBotCount}`
         if (tech.plasmaBotCount) botText += `<br>plasma-bots: ${tech.plasmaBotCount}`
         if (tech.missileBotCount) botText += `<br>missile-bots: ${tech.missileBotCount}`
-
+        //FIX no
         let text = `<div class="pause-grid-module" style = "padding: 10px; line-height: 110%;">
 <span style = "font-size: 0.87em;">
 <span style="font-size:1.5em;font-weight: 600; float: left;">PAUSED</span> 
@@ -435,7 +425,7 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
         //                    <div class="card-text" style = "animation: fieldColorCycle 1s linear infinite alternate;">
         //                    <div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(m.fieldUpgrades[m.fieldMode].name)}</div>
         //                    ${m.fieldUpgrades[m.fieldMode].description}</div> </div>`
-        if ((tech.isPauseSwitchField || simulation.testing)) {  //&& !simulation.isChoosing
+        if (tech.isPauseSwitchField || simulation.testing) {  //&& !simulation.isChoosing
             // const fieldNameP = m.fieldUpgrades[m.fieldMode > 1 ? m.fieldMode - 1 : m.fieldUpgrades.length - 1].name
             // const fieldNameN = m.fieldUpgrades[m.fieldMode === m.fieldUpgrades.length - 2 ? 1 : m.fieldMode + 1].name
             //button above for previous
@@ -627,27 +617,24 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
         document.getElementById("sort-input").value = find; //make the sorted string display in the keyword search input field
         simulation.updateTechHUD();
     },
-    unPauseGrid() {
-        document.getElementById("guns").style.display = "inline"
+    unPauseGrid() { //TODO CSS this too
+        document.getElementById("guns").style.display = 
         document.getElementById("field").style.display = "inline"
-        if (tech.isEnergyHealth) {
-            document.getElementById("health").style.display = "none"
-            document.getElementById("health-bg").style.display = "none"
-        } else {
-            document.getElementById("health").style.display = "inline"
-            document.getElementById("health-bg").style.display = "inline"
-        }
+        document.getElementById("health").style.display = 
+        document.getElementById("health-bg").style.display = tech.isEnergyHealth ? "none" : "inline"
         if (!localSettings.isHideHUD) {
-            document.getElementById("tech").style.display = "inline"
-            document.getElementById("defense-bar").style.display = "inline"
+            document.getElementById("tech").style.display = 
+            document.getElementById("defense-bar").style.display = 
             document.getElementById("damage-bar").style.display = "inline"
         }
-        document.getElementById("pause-grid-left").style.display = "none"
-        document.getElementById("pause-grid-right").style.display = "none"
-        document.getElementById("pause-grid-right").style.opacity = "1"
-        document.getElementById("pause-grid-left").style.opacity = "1"
+        //TODO CSS this
+        let pauseGridLeftStyle = document.getElementById("pause-grid-left").style
+        let pauseGridRightStyle = document.getElementById("pause-grid-right").style
+        pauseGridLeftStyle.display = pauseGridRightStyle.display = "none"
+        pauseGridLeftStyle.opacity = pauseGridRightStyle.opacity = "1"
         window.scrollTo(0, 0);
     },
+    
     isExperimentSelection: false,
     isExperimentRun: false,
     techText(i) {
@@ -746,7 +733,7 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
         }
         build.updateExperimentText(isAllowed)
     },
-    updateExperimentText(isAllowed = false) {
+    updateExperimentText(isAllowed = false) { //FIX god why??
         for (let i = 0, len = tech.tech.length; i < len; i++) {
             const techID = document.getElementById("tech-" + i)
             if ((!tech.tech[i].isJunk || localSettings.isJunkExperiment) && !tech.tech[i].isLore) {

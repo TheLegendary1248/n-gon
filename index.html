@@ -311,6 +311,45 @@
             <text x="599" y="438">field</text>
         </g>
     </svg>
+    <template>
+        <div class="card-text" >
+            <div class="grid-title" ><div class="circle-grid tech"></div> &nbsp; ${build.nameLink(tech.tech[i].name)} ${tech.tech[i].count > 1 ? `(${tech.tech[i].count}x)` : ""}</div>
+            ${tech.tech[i].descriptionFunction ? tech.tech[i].descriptionFunction() : tech.tech[i].description}</div>
+    </template>
+    <template>
+        <div class="card-text" >
+            <div class="grid-title" > <div class="circle-grid-instant"></div> &nbsp; ${build.nameLink(tech.tech[i].name)} ${tech.tech[i].count > 1 ? `(${tech.tech[i].count}x)` : ""}</div>
+            ${tech.tech[i].descriptionFunction ? tech.tech[i].descriptionFunction() : tech.tech[i].description}</div>
+    </template>
+    <template>
+        <div class="card-text"> <div class="grid-title">
+            <span style="position:relative;">
+                <div class="circle-grid-skin"></div>
+                <div class="circle-grid-skin-eye"></div>
+            </span> &nbsp; &nbsp; &nbsp;&nbsp; ${build.nameLink(tech.tech[i].name)} ${tech.tech[i].count > 1 ? `(${tech.tech[i].count}x)` : ""}</div>
+            ${tech.tech[i].descriptionFunction ? tech.tech[i].descriptionFunction() : tech.tech[i].description}</div>
+    </template>
+    <template>
+        <div class="card-text"> <div class="grid-title">
+            <span style="position:relative;">
+                <div class="circle-grid tech" style="position:absolute; top:0; left:0;opacity:0.8;"></div>
+                <div class="circle-grid gun" style="position:absolute; top:0; left:10px; opacity:0.65;"></div>
+            </span> &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; ${build.nameLink(tech.tech[i].name)} ${tech.tech[i].count > 1 ? `(${tech.tech[i].count}x)` : ""}</div>
+            ${tech.tech[i].descriptionFunction ? tech.tech[i].descriptionFunction() : tech.tech[i].description}</div>
+    </template>
+    <template>
+        <div class="card-text"><div class="grid-title">
+            <span style="position:relative;">
+                    <div class="circle-grid tech" style="position:absolute; top:0; left:0;opacity:0.8;"></div>
+                    <div class="circle-grid field" style="position:absolute; top:0; left:10px;opacity:0.65;"></div>
+            </span> &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; ${build.nameLink(tech.tech[i].name)} ${tech.tech[i].count > 1 ? `(${tech.tech[i].count}x)` : ""}</div>
+            ${tech.tech[i].descriptionFunction ? tech.tech[i].descriptionFunction() : tech.tech[i].description}</div>
+    </template>
+    <template>
+        <div class="card-text">
+            <div class="grid-title"><div class="circle-grid junk"></div> &nbsp; ${build.nameLink(tech.tech[i].name)} ${tech.tech[i].count > 1 ? `(${tech.tech[i].count}x)` : ""}</div>
+            ${tech.tech[i].descriptionFunction ? tech.tech[i].descriptionFunction() : tech.tech[i].description}</div>
+    </template>
     <script src='lib/matter.min.js'></script>
     <!-- <script src='lib/decomp.min.js'></script> -->
     <script src="js/simulation.js"></script>

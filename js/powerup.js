@@ -1008,12 +1008,13 @@ const powerUps = {
                     for (let i = 0; i < totalChoices; i++) {
                         if (options.length < 1) break
                         const choose = options[Math.floor(Math.seededRandom(0, options.length))] //pick an element from the array of options
+                        let choice = tech.tech[choose]
                         if (tech.isBanish) {
-                            tech.tech[choose].isBanished = true
+                            choice.isBanished = true
                             if (i === 0) simulation.makeTextLog(`options.length = ${optionLengthNoDuplicates} <span class='color-text'>//tech removed from pool by decoherence</span>`)
                         }
                         removeOption(choose) //move from future options pool to avoid repeats on this selection
-                        tech.tech[choose].isRecentlyShown = true //this flag prevents this option from being shown the next time you pick up a tech power up
+                        choice.isRecentlyShown = true //this flag prevents this option from being shown the next time you pick up a tech power up
                         if (Math.random() < tech.junkChance) { // choose is set to a random JUNK tech
                             const list = []
                             for (let i = 0; i < tech.tech.length; i++) {
@@ -1022,15 +1023,16 @@ const powerUps = {
                             chooseJUNK = list[Math.floor(Math.random() * list.length)]
                             text += powerUps.junkTechText(chooseJUNK, `powerUps.choose('tech',${chooseJUNK})`)
                         } else {
-                            if (tech.tech[choose].isFieldTech) {
+                            let strParam
+                            if (choice.isFieldTech) {
                                 text += powerUps.fieldTechText(choose, `powerUps.choose('tech',${choose})`)
-                            } else if (tech.tech[choose].isGunTech) {
+                            } else if (choice.isGunTech) {
                                 text += powerUps.gunTechText(choose, `powerUps.choose('tech',${choose})`)
-                            } else if (tech.tech[choose].isJunk) {
+                            } else if (choice.isJunk) {
                                 text += powerUps.junkTechText(choose, `powerUps.choose('tech',${choose})`)
-                            } else if (tech.tech[choose].isSkin) {
+                            } else if (choice.isSkin) {
                                 text += powerUps.skinTechText(choose, `powerUps.choose('tech',${choose})`)
-                            } else if (tech.tech[choose].isInstant) {
+                            } else if (choice.isInstant) {
                                 text += powerUps.instantTechText(choose, `powerUps.choose('tech',${choose})`)
                             } else { //normal tech
                                 text += powerUps.techText(choose, `powerUps.choose('tech',${choose})`)
@@ -1161,7 +1163,7 @@ const powerUps = {
                             } else if (tech.tech[choose].isSkin) {
                                 text += powerUps.skinTechText(choose, `powerUps.choose('tech',${choose})`)
                             } else if (tech.tech[choose].isInstant) {
-                                text += powerUps.instantTechTextTechText(choose, `powerUps.choose('tech',${choose})`)
+                                text += powerUps.instantTechText(choose, `powerUps.choose('tech',${choose})`)
                             } else { //normal tech
                                 text += powerUps.techText(choose, `powerUps.choose('tech',${choose})`)
                             }
