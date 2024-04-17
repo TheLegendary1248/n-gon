@@ -670,7 +670,7 @@ summary {
     z-index: 2;
     width: 100%;
     height: 100%;
-    background-color: #e2e9ec;
+    background-color: #222/* #e2e9ec */;
     opacity: 1;
     transition: opacity 3s;
     pointer-events: none;
@@ -1419,4 +1419,31 @@ summary {
     stroke-dasharray: 300;
     stroke-dashoffset: 300;
     animation: dash 2.5s ease-in forwards;
+}
+.card-text .grid-title {
+    --field: #0cf;
+    --tech: hsl(255, 100%, 71%);
+    --gun: rgb(0, 80, 218);
+    --heal: #0d9;
+    --research: #f7b;
+    &.techText{ 
+        & > div {
+
+        }
+    }
+    &.instantTechText{ 
+        
+    }
+    &.skinTechText{ 
+        
+    }
+    &.gunTechText{ 
+        
+    }
+    &.fieldTechText{ 
+        
+    }
+    &.junkTechText{ 
+        
+    }
 }

@@ -637,6 +637,13 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
     
     isExperimentSelection: false,
     isExperimentRun: false,
+    /** @type {DocumentFragment} */
+    cardTextTemplate: document.getElementById("card-template").content,
+    getTechText(i) {
+        let elem = this.cardTextTemplate.cloneNode()
+        let gridTitle = this.cardTextTemplate
+        return elem
+    },
     techText(i) {
         return `<div class="card-text" >
         <div class="grid-title" ><div class="circle-grid tech"></div> &nbsp; ${build.nameLink(tech.tech[i].name)} ${tech.tech[i].count > 1 ? `(${tech.tech[i].count}x)` : ""}</div>
