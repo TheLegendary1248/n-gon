@@ -213,36 +213,41 @@ window.addEventListener('load', () => {
     if (set.size !== 0) {
         // build.populateGrid() //trying to solve a bug with this, but maybe it doesn't help
         openExperimentMenu();
-        //add experimental selections based on url
-        for (const [property, value] of set) { //TODO This could be simplified further, but it's also not bad now
-            if (property === "field") {
-                let i = m.fieldUpgrades.findIndex(e => e.name == value)
-                if(i != -1)
-                    build.choosePowerUp(i, 'field')
-            }
-            if (property.substring(0, 3) === "gun") {
-                let i = b.guns.findIndex(e => e.name == value)
-                if(i != -1)
-                    build.choosePowerUp(i, 'gun')
-            }
-            if (property.substring(0, 4) === "tech") {
-                let i = tech.tech.findIndex(e => e.name == value)
-                if(i != -1)
-                    build.choosePowerUp(i, 'tech', true)
-            }
-            if (property === "difficulty") {
-                simulation.difficultyMode = Number(value)
+        let value = set.get('difficulty')
+        if(value)
+{
+      value = Number(value)
+      set.delete('difficulty')
+                simulation.difficultyMode = value
                 lore.setTechGoal()
-                document.getElementById("difficulty-select-experiment").value = Number(value)
+                document.getElementById("difficulty-select-experiment").value = value
             }
-            if (property === "molMode") {
+    value = set.get('molMode')
+if (value) {
+      set.delete('molMode')
                 simulation.molecularMode = Number(value)
                 const i = 4 //update experiment text
-                m.fieldUpgrades[i].description = m.fieldUpgrades[i].setDescription()
+                let tech = m.fieldUpgrades[i]
+                tech.description = tech.setDescription()
                 document.getElementById(`field-${i}`).innerHTML = `<div class="card-text">
-                <div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(m.fieldUpgrades[i].name)}</div>
-                ${m.fieldUpgrades[i].description}</div>`
+                <div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(tech.name)}</div>
+                ${tech.description}</div>`
             }
+    const selectAnyPowerup = function (type, val) {
+      let sel = {'field': m.fieldUpgrades, 'tech': tech.tech, 'gun': b.guns}
+      let i = sel[type].findIndex(e => e.name == val)
+      if(i != -1)
+        build.choosePowerUp(i,type)
+    }
+    value = set.get('field')
+if (value) {
+      set.delete('field')
+      selectAnyPowerup('field')
+    }
+        //add experimental selections based on url
+        for (const [property, value] of set) { //TODO This could be simplified further, but it's also not bad now
+            if (property.substring(0, 3) === "gun") selectAnyPowerup('gun', value)
+            if (property.substring(0, 4) === "tech") selectAnyPowerup('tech', value)
             requestAnimationFrame(() => { build.sortTech('have', true) });
         }
     } else if (localSettings.isTrainingNotAttempted && localSettings.runCount < 30) { //TODO I'm pretty sure we can change those svg's to regular HTML?
