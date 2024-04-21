@@ -11787,6 +11787,18 @@ const tech = {
     plasmaBotCount: null,
     missileBotCount: null,
     orbitBotCount: null,
+    botCounts : {
+        //1248: for now
+        get laserBotCount() { return tech.laserBotCount },
+        get dynamoBotCount() { return tech.dynamoBotCount },
+        get nailBotCount() { return tech.nailBotCount },
+        get foamBotCount() { return tech.foamBotCount },
+        get soundBotCount() { return tech.soundBotCount },
+        get boomBotCount() { return tech.boomBotCount },
+        get plasmaBotCount() { return tech.plasmaBotCount },
+        get missileBotCount() { return tech.missileBotCount },
+        get orbitBotCount() { return tech. orbitBotCount }
+    },
     blockDmg: null,
     isBlockRadiation: null,
     isPiezo: null,

@@ -1,4 +1,15 @@
+let o = {}
+let props = Object.entries(spawn) /*Filtering here*/
+Object.assign(o, spawn) //I'm sure this isn't the right name
+let id = 0
+for( const [k, v] in props){
+  let holdkey = k
+  spawn[k] = function k () {o[holdkey](...args);//i forgot atm how spread works here
+mob[mob.length - 1].mobType = id++
+}
+}
 "use strict";
+//TODO cache often accessed dom elements. Like, seriously man? Does typing document.getElementById that many times not deter you?
 function createElementFromHTML(htmlString) {
   var div = document.createElement('div');
   div.innerHTML = htmlString.trim();
@@ -165,12 +176,9 @@ function beforeUnloadEventListener(event) {
     if (tech.isExitPrompt) {
         tech.damage *= 1.25
         simulation.makeTextLog(`damage <span class='color-symbol'>*=</span> ${1.25}`)
-        if (Math.random() < 0.25) {
-            removeEventListener('beforeunload', beforeUnloadEventListener);
-        }
+        if (Math.random() < 0.25) removeEventListener('beforeunload', beforeUnloadEventListener);
     }
 }
-// addEventListener('beforeunload', beforeUnloadEventListener);
 
 //collision groups
 //   cat.player | cat.map | cat.body | cat.bullet | cat.powerUp | cat.mob | cat.mobBullet | cat.mobShield | cat.phased
@@ -213,37 +221,35 @@ window.addEventListener('load', () => {
     if (set.size !== 0) {
         // build.populateGrid() //trying to solve a bug with this, but maybe it doesn't help
         openExperimentMenu();
-        let value = set.get('difficulty')
-        if(value)
-{
-      value = Number(value)
-      set.delete('difficulty')
-                simulation.difficultyMode = value
-                lore.setTechGoal()
-                document.getElementById("difficulty-select-experiment").value = value
-            }
-    value = set.get('molMode')
-if (value) {
-      set.delete('molMode')
-                simulation.molecularMode = Number(value)
-                const i = 4 //update experiment text
-                let tech = m.fieldUpgrades[i]
-                tech.description = tech.setDescription()
-                document.getElementById(`field-${i}`).innerHTML = `<div class="card-text">
+        let value
+        if (value = set.get('difficulty')) {
+            set.delete('difficulty')
+            value = Number(value)
+            simulation.difficultyMode = document.getElementById("difficulty-select-experiment").value = value
+            lore.setTechGoal()
+        }
+        if (value = set.get('molMode')) {
+            set.delete('molMode')
+            simulation.molecularMode = Number(value)
+            const i = 4 //update experiment text
+            let tech = m.fieldUpgrades[i]
+            tech.description = tech.setDescription() //TODO this is very wrong
+            document.getElementById(`field-${i}`).innerHTML = `<div class="card-text">
                 <div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(tech.name)}</div>
                 ${tech.description}</div>`
-            }
-    const selectAnyPowerup = function (type, val) {
-      let sel = {'field': m.fieldUpgrades, 'tech': tech.tech, 'gun': b.guns}
-      let i = sel[type].findIndex(e => e.name == val)
-      if(i != -1)
-        build.choosePowerUp(i,type)
-    }
-    value = set.get('field')
-if (value) {
-      set.delete('field')
-      selectAnyPowerup('field')
-    }
+        }
+        let sel = { 'field': m.fieldUpgrades, 'tech': tech.tech, 'gun': b.guns } //TODO rethink this. its not very readeable
+        const selectAnyPowerup = function (type, val) {  
+            let i = sel[type].findIndex(e => e.name == val)
+            if (i != -1)
+                build.choosePowerUp(i, type)
+        }
+        value = set.get('field')
+        if (value) {
+            set.delete('field')
+            selectAnyPowerup('field')
+        }
+        delete sel['field']
         //add experimental selections based on url
         for (const [property, value] of set) { //TODO This could be simplified further, but it's also not bad now
             if (property.substring(0, 3) === "gun") selectAnyPowerup('gun', value)
@@ -294,7 +300,7 @@ window.onresize = setupCanvas;
 // experimental build grid display and pause
 //**********************************************************************
 //set wikipedia link
-for (let i = 0, len = tech.tech.length; i < len; i++) //FIX Check 'replace' here. Probably unecessary 
+for (let i = 0, len = tech.tech.length; i < len; i++) //FIX Check 'replace' here. Probably unecessary //TODO Generate when needed instead
     tech.tech[i].link ??= `<a target="_blank" href='https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(tech.tech[i].name)/* .replace(/'/g, '%27') */}&title=Special:Search' class="link">${tech.tech[i].name}</a>`
 
 const build = {
@@ -304,21 +310,18 @@ const build = {
         let count = 0
         let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         let data = imgData.data;
-
         function loop() {
             count++
             if (!(count % 2)) {
                 for (let y = 0; y < canvas.height; ++y) {
                     for (let x = 0; x < canvas.width; x += 1) {
                         const index = (y * canvas.width + x) * 4;
-
                         //invert
                         data[index + 0] = 255 - data[index + 0] // red
                         data[index + 1] = 255 - data[index + 1] // green
                         data[index + 2] = 255 - data[index + 2] // blue
                     }
                 }
-
                 ctx.putImageData(imgData, 0, 0);
             }
             if (simulation.paused && m.alive) requestAnimationFrame(loop);
@@ -332,7 +335,7 @@ const build = {
             build.reset();
         } else if (from === 'pause') {
             build.unPauseGrid()
-            build.pauseGrid() //redraw pause text with images
+            build.pauseGrid() //redraw pause text with images //FIX really? Couldn't be bothered to use CSS and hide images with that?
         }
         let gridClassList = document.getElementById("choose-grid").classList //FIX Use CSS(maybe)
         gridClassList.add(localSettings.isHideImages ? 'choose-grid-no-images' : 'choose-grid')
@@ -373,18 +376,19 @@ const build = {
         simulation.lastLogTime = m.cycle //hide in game console
     },
     generatePauseLeft() {
+        let node = document.createElement('br')
         //left side
         let botText = ""
-        if (tech.nailBotCount) botText += `<br>nail-bots: ${tech.nailBotCount}`
-        if (tech.orbitBotCount) botText += `<br>orbital-bots: ${tech.orbitBotCount}`
-        if (tech.boomBotCount) botText += `<br>boom-bots: ${tech.boomBotCount}`
-        if (tech.laserBotCount) botText += `<br>laser-bots: ${tech.laserBotCount}`
-        if (tech.foamBotCount) botText += `<br>foam-bots: ${tech.foamBotCount}`
-        if (tech.soundBotCount) botText += `<br>sound-bots: ${tech.soundBotCount}`
-        if (tech.dynamoBotCount) botText += `<br>dynamo-bots: ${tech.dynamoBotCount}`
-        if (tech.plasmaBotCount) botText += `<br>plasma-bots: ${tech.plasmaBotCount}`
-        if (tech.missileBotCount) botText += `<br>missile-bots: ${tech.missileBotCount}`
+        //Generate display for counts
+        Object.entries(tech.botCounts).forEach(([key, value]) => {
+            if(value) botText += `<br>${key.split(/(?=[A-Z])/).slice(0,-1).map(e => e.toLocaleLowerCase()).join('-')}s: ${value}`
+        });
         //FIX no
+        /** @type {HTMLTemplateElement} */
+        let template = document.getElementById('t-pause-grid')
+        
+        let clone  = template.content.cloneNode(true).children[0]
+        
         let text = `<div class="pause-grid-module" style = "padding: 10px; line-height: 110%;">
 <span style = "font-size: 0.87em;">
 <span style="font-size:1.5em;font-weight: 600; float: left;">PAUSED</span> 
@@ -519,7 +523,7 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
         document.getElementById("sort-input").addEventListener('keydown', pressEnterSort);
         requestAnimationFrame(() => { document.getElementById("sort-input").focus(); });
     },
-    sortTech(find, isExperiment = false) {
+    sortTech(find, isExperiment = false) { //FIX Pretty sure this doesn't work to begin with
         const sortKeyword = (a, b) => {
             let aHasKeyword = (a.descriptionFunction ? a.descriptionFunction() : a.description).includes(find) || a.name.includes(find)
             let bHasKeyword = (b.descriptionFunction ? b.descriptionFunction() : b.description).includes(find) || b.name.includes(find)
@@ -1033,7 +1037,7 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
 }
 
 function openExperimentMenu() {
-    document.getElementById("experiment-button").style.display = "none";
+    document.getElementById("experiment-button").style.display =
     document.getElementById("training-button").style.display = "none";
     const el = document.getElementById("experiment-grid")
     el.style.display = "grid"
@@ -1115,19 +1119,9 @@ const input = {
     },
     focus: null,
     setTextFocus() {
-        const backgroundColor = "#fff"
-        document.getElementById("key-fire").style.background = backgroundColor
-        document.getElementById("key-field").style.background = backgroundColor
-        document.getElementById("key-up").style.background = backgroundColor
-        document.getElementById("key-down").style.background = backgroundColor
-        document.getElementById("key-left").style.background = backgroundColor
-        document.getElementById("key-right").style.background = backgroundColor
-        document.getElementById("key-pause").style.background = backgroundColor
-        document.getElementById("key-next-gun").style.background = backgroundColor
-        document.getElementById("key-previous-gun").style.background = backgroundColor
-        document.getElementById("key-testing").style.background = backgroundColor
+        const backgroundColor = "#fff"; //TODO CSS this
+        ["key-fire","key-field","key-up", "key-num","key-down","key-left","key-right","key-pause","key-next-gun","key-previous-gun","key-testing"].forEach(e => document.getElementById(e).style.background = backgroundColor)
         if (input.focus) input.focus.style.background = 'rgb(0, 200, 255)';
-        document.getElementById("key-num").style.background = backgroundColor //always not highlighted
     },
     setKeys(event) {
         //check for duplicate keys
@@ -1537,8 +1531,8 @@ window.addEventListener("keydown", function (event) {
                 }, 200);
                 break
             case "l":
-                document.getElementById("field").style.display = "none"
-                document.getElementById("guns").style.display = "none"
+                document.getElementById("field").style.display =
+                document.getElementById("guns").style.display =
                 document.getElementById("tech").style.display = "none"
                 break
         }
@@ -1549,60 +1543,20 @@ document.body.addEventListener("mousemove", (e) => {
     simulation.mouse.x = e.clientX;
     simulation.mouse.y = e.clientY;
 });
-
-document.body.addEventListener("mouseup", (e) => {
-    // input.fire = false;
-    // console.log(e)
-    if (e.button === 0) {
-        input.fire = false;
-    } else if (e.button === 2) {
-        input.field = false;
-    }
+document.body.addEventListener("mouseup", e => {
+    input.fire = e.button === 0 ? false : input.fire
+    input.field = e.button === 2 ? false : input.field
 });
-
-document.body.addEventListener("mousedown", (e) => {
-    if (e.button === 0) {
-        input.fire = true;
-    } else if (e.button === 2) {
-        input.field = true;
-    }
+document.body.addEventListener("mousedown", e => {
+    input.fire = e.button === 0 ? true : input.fire
+    input.field = e.button === 2 ? true : input.field
 });
-
-document.body.addEventListener("mouseenter", (e) => { //prevents mouse getting stuck when leaving the window
-    if (e.button === 1) {
-        input.fire = true;
-    } else {
-        input.fire = false;
-    }
-
-    if (e.button === 3) {
-        input.field = true;
-    } else {
-        input.field = false;
-    }
-});
-document.body.addEventListener("mouseleave", (e) => { //prevents mouse getting stuck when leaving the window
-    if (e.button === 1) {
-        input.fire = true;
-    } else {
-        input.fire = false;
-    }
-
-    if (e.button === 3) {
-        input.field = true;
-    } else {
-        input.field = false;
-    }
-});
-
-document.body.addEventListener("wheel", (e) => {
-    if (!simulation.paused) {
-        if (e.deltaY > 0) {
-            simulation.nextGun();
-        } else {
-            simulation.previousGun();
-        }
-    }
+//prevents mouse getting stuck when leaving the window
+document.body.addEventListener("mouseenter", () => input.fire = input.field = false);
+document.body.addEventListener("mouseleave", () => input.fire = input.field = false);
+document.body.addEventListener("wheel", (e) => { //TEST Check scroll wheel still doesn't change gun when paused
+    if (simulation.paused) return //FIX doesn't help with when the menu is open but the game isn't paused
+    e.deltaY > 0 ? simulation.nextGun() : simulation.previousGun() 
 }, {
     passive: true
 });
