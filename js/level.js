@@ -249,17 +249,7 @@ const level = {
         simulation.dmgScale = Math.max(0.1, 0.25 * simulation.difficulty) //damage done by mobs scales with total levels
         simulation.healScale = 1 / (1 + simulation.difficulty * 0.043)
     },
-    difficultyText() {
-        if (simulation.difficultyMode === 1) {
-            return "easy"
-        } else if (simulation.difficultyMode === 2) {
-            return "normal"
-        } else if (simulation.difficultyMode === 4) {
-            return "hard"
-        } else if (simulation.difficultyMode === 5) {
-            return "why"
-        }
-    },
+    difficultyText() { return {1: "easy", 2: "normal", 4: "hard", 5: "why"}[simulation.difficultyMode] },
     levelAnnounce() {
         const difficulty = simulation.isCheating ? "testing" : level.difficultyText()
         if (level.levelsCleared === 0) {
