@@ -1579,7 +1579,7 @@ const powerUps = {
             properties.isDuplicated = true
         } else {
             properties.inertia = Infinity //prevents rotation for circles only
-            polygonSides = 0
+            polygonSides = 6
         }
         powerUp[index] = Matter.Bodies.polygon(x, y, polygonSides, size, properties);
         if (mode) powerUp[index].mode = mode
