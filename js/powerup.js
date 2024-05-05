@@ -1201,7 +1201,7 @@ const powerUps = {
                         tech.isBrainstormActive = true
                         let count = 1
                         let timeStart = performance.now()
-                        const cycle = (timestamp) => {
+                        const  cycle = (timestamp) => {
                             // if (timeStart === undefined) timeStart = timestamp
                             // console.log(timestamp, timeStart)
                             if (timestamp - timeStart > tech.brainStormDelay * count && simulation.isChoosing) {
@@ -1306,6 +1306,7 @@ const powerUps = {
         requestAnimationFrame(cycle);
     },
     onPickUp(who) {
+        console.log("heyo fucker", who)
         powerUps.research.currentRerollCount = 0
         if (tech.isTechDamage && who.name === "tech") m.damage(0.1)
         if (tech.isMassEnergy) m.energy += 2;

@@ -1,4 +1,5 @@
 //matter.js ***********************************************************
+
 // module aliases
 const Engine = Matter.Engine,
     Events = Matter.Events,
@@ -9,13 +10,12 @@ const Engine = Matter.Engine,
     Query = Matter.Query,
     Body = Matter.Body,
     Bodies = Matter.Bodies,
-    Vector = Matter.Vector;
+    Vector = Matter.Vector,
+    Sleeping = Matter.Sleeping;
 
 // create an engine
 const engine = Engine.create();
 engine.world.gravity.scale = 0; //turn off gravity (it's added back in later)
-// engine.velocityIterations = 100
-// engine.positionIterations = 100
 // engine.enableSleeping = true
 
 // matter events
@@ -88,6 +88,14 @@ function playerOffGroundCheck(event) {
 function collisionChecks(event) {
     const pairs = event.pairs;
     for (let i = 0, j = pairs.length; i != j; i++) {
+        if (pairs[i].bodyA.collisionFilter.category == cat.powerUp && pairs[i].bodyB.collisionFilter.category == cat.powerUp) {
+            //We can do merging here if need be
+            // Sleeping.set(pairs[i].bodyA)
+            // Body.setVelocity(pairs[i].bodyA, {x: 0, y: 0})
+            // Sleeping.set(pairs[i].bodyB)
+            
+            // Body.setVelocity(pairs[i].bodyB, {x: 0, y: 0})
+        }
         //mob + (player,bullet,body) collisions
         for (let k = 0; k < mob.length; k++) {
             if (mob[k].alive) {
@@ -98,7 +106,6 @@ function collisionChecks(event) {
                     collideMob(pairs[i].bodyA);
                     break;
                 }
-
                 function collideMob(obj) {
                     //player + mob collision
                     if (
