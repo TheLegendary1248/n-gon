@@ -7,7 +7,7 @@ const m = {
         //load player in matter.js physic engine
         let vertices = Vertices.fromPath("0,40, 50,40, 50,115, 30,130, 20,130, 0,115, 0,40"); //player as a series of vertices
         playerBody = Bodies.fromVertices(0, 0, vertices);
-        jumpSensor = Bodies.rectangle(0, 46, 36, 6, {
+        jumpSensor = Bodies.rectangle(0, 46, 36, 6, {       //(0, 46, 50, 6, { //for wall jumping
             //this sensor check if the player is on the ground to enable jumping
             sleepThreshold: 99999999999,
             isSensor: true
@@ -458,7 +458,7 @@ const m = {
             for (i = 0, len = b.inventory.length; i < len; i++) gunList.push(b.inventory[i])
             const techList = [] //store tech names
             for (let i = 0; i < tech.tech.length; i++) {
-                if (tech.tech[i].count > 0 && !tech.tech[i].isNonRefundable) techList.push(i)
+                if (tech.tech[i].count > 0 && !tech.tech[i].isNonRefundable) techList.push(tech.tech[i].name)
             }
             if (techList.length) {
                 localSettings.entanglement = {
@@ -505,7 +505,7 @@ const m = {
     },
     baseHealth: 1,
     setMaxHealth(isMessage) {
-        m.maxHealth = m.baseHealth + tech.extraMaxHealth + 3 * tech.isFallingDamage + 4 * tech.isFlipFlop * tech.isFlipFlopOn * tech.isFlipFlopHealth
+        m.maxHealth = m.baseHealth + tech.extraMaxHealth + 3 * tech.isFallingDamage
         document.getElementById("health-bg").style.width = `${Math.floor(300 * m.maxHealth)}px`
         if (isMessage) simulation.makeTextLog(`<span class='color-var'>m</span>.<span class='color-h'>maxHealth</span> <span class='color-symbol'>=</span> ${m.maxHealth.toFixed(2)}`)
         if (m.health > m.maxHealth) m.health = m.maxHealth;
@@ -520,14 +520,14 @@ const m = {
         if (tech.isDiaphragm) dmg *= 0.55 + 0.35 * Math.sin(m.cycle * 0.0075);
         if (tech.isZeno) dmg *= 0.15
         if (tech.isFieldHarmReduction) dmg *= 0.6
-        if (tech.isHarmMACHO) dmg *= 0.4
+        if (tech.isHarmMACHO) dmg *= tech.isMoveMACHO ? 0.3 : 0.4
         if (tech.isImmortal) dmg *= 0.7
         if (m.fieldMode === 0 || m.fieldMode === 3) dmg *= 0.973 ** m.coupling
         if (tech.isLowHealthDefense) dmg *= 1 - Math.max(0, 1 - m.health) * 0.8
         if (tech.isHarmReduceNoKill && m.lastKillCycle + 300 < m.cycle) dmg *= 0.3
         if (tech.squirrelFx !== 1) dmg *= 0.8//Math.pow(0.78, (tech.squirrelFx - 1) / 0.4)
         if (tech.isAddBlockMass && m.isHolding) dmg *= 0.1
-        if (tech.isSpeedHarm && player.speed > 0.1) dmg *= 1 - Math.min(player.speed * 0.0193, 0.8) //capped at speed of 55
+        if (tech.isSpeedHarm && player.speed > 0.1) dmg *= 1 - Math.min((tech.speedAdded + player.speed) * 0.0193, 0.8) //capped at speed of 55
         if (tech.isHarmReduce && input.field) dmg *= 0.1
         if (tech.isNeutronium && input.field && m.fieldCDcycle < m.cycle) dmg *= 0.05
         if (tech.isBotArmor) dmg *= 0.95 ** b.totalBots()
@@ -646,7 +646,7 @@ const m = {
         }
         m.lastHarmCycle = m.cycle
         if (tech.isDroneOnDamage && bullet.length < 150) { //chance to build a drone on damage  from tech
-            const len = Math.min((dmg - 0.06 * Math.random()) * 40, 40) / tech.droneEnergyReduction * (tech.isEnergyHealth ? 0.5 : 1)
+            const len = Math.min((dmg - 0.06 * Math.random()) * 80, 60) / tech.droneEnergyReduction * (tech.isEnergyHealth ? 0.5 : 1)
             for (let i = 0; i < len; i++) {
                 if (Math.random() < 0.5) b.drone({
                     x: m.pos.x + 30 * Math.cos(m.angle) + 100 * (Math.random() - 0.5),
@@ -2066,7 +2066,7 @@ const m = {
         }
     },
     setMaxEnergy(isMessage = true) {
-        m.maxEnergy = (tech.isMaxEnergyTech ? 0.5 : 1) + tech.bonusEnergy + tech.healMaxEnergyBonus + tech.harmonicEnergy + 2.66 * tech.isGroundState + 3 * tech.isRelay * tech.isFlipFlopOn * tech.isRelayEnergy + 1.5 * (m.fieldMode === 1) + (m.fieldMode === 0 || m.fieldMode === 1) * 0.05 * m.coupling + 0.77 * tech.isStandingWaveExpand
+        m.maxEnergy = (tech.isMaxEnergyTech ? 0.5 : 1) + tech.bonusEnergy + tech.healMaxEnergyBonus + tech.harmonicEnergy + 2.66 * tech.isGroundState + 1.5 * (m.fieldMode === 1) + (m.fieldMode === 0 || m.fieldMode === 1) * 0.05 * m.coupling + 0.77 * tech.isStandingWaveExpand
         if (isMessage) simulation.makeTextLog(`<span class='color-var'>m</span>.<span class='color-f'>maxEnergy</span> <span class='color-symbol'>=</span> ${(m.maxEnergy.toFixed(2))}`)
     },
     fieldMeterColor: "#0cf",
@@ -3145,7 +3145,7 @@ const m = {
             m.holdingMassScale = 0.01; //can hold heavier blocks with lower cost to jumping
             m.fieldMeterColor = "#333"
             m.eyeFillColor = m.fieldMeterColor
-            m.fieldHarmReduction = 0.4; //55% reduction
+            m.fieldHarmReduction = 0.4;
             m.fieldDrawRadius = 0;
 
             m.hold = function () {
@@ -4632,12 +4632,13 @@ const m = {
     },
     {
         name: "grappling hook",
-        description: `use <strong class='color-f'>energy</strong> to fire a hook that <strong>pulls</strong> player<br><strong class='color-d'>damages</strong> mobs and grabs <strong class='color-block'>blocks</strong><br><strong>9</strong> <strong class='color-f'>energy</strong> per second`,
+        description: `use <strong class='color-f'>energy</strong> to fire a hook that <strong>pulls</strong> you<br><strong>0.6x</strong> <strong class='color-defense'>damage taken</strong><br><strong>9</strong> <strong class='color-f'>energy</strong> per second`,
         effect: () => {
             m.fieldFire = true;
             // m.holdingMassScale = 0.01; //can hold heavier blocks with lower cost to jumping
             // m.fieldMeterColor = "#789"//"#456"
             m.eyeFillColor = m.fieldMeterColor
+            m.fieldHarmReduction = 0.6; //40% reduction
             m.grabPowerUpRange2 = 300000 //m.grabPowerUpRange2 = 200000;
 
             m.hold = function () {

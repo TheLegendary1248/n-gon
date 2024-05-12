@@ -3066,7 +3066,7 @@ const b = {
                             //remove the body and spawn a new drone
                             Composite.remove(engine.world, found)
                             body.splice(body.indexOf(found), 1)
-                            b.delayDrones(found.position, 0.7 * Math.sqrt(found.mass))
+                            b.delayDrones(found.position, Math.sqrt(found.mass))
                             //draw a line from the drone to the body on the canvas
                             ctx.beginPath();
                             ctx.moveTo(this.position.x, this.position.y);
@@ -3085,9 +3085,7 @@ const b = {
                                     ctx.beginPath();
                                     let vertices = found.vertices;
                                     ctx.moveTo(vertices[0].x, vertices[0].y);
-                                    for (let j = 1; j < vertices.length; j++) {
-                                        ctx.lineTo(vertices[j].x, vertices[j].y);
-                                    }
+                                    for (let j = 1; j < vertices.length; j++) ctx.lineTo(vertices[j].x, vertices[j].y);
                                     ctx.lineTo(vertices[0].x, vertices[0].y);
                                     ctx.lineWidth = 2;
                                     ctx.strokeStyle = `rgba(0,0,0,${this.count / 60})`
@@ -3306,7 +3304,7 @@ const b = {
                             //remove the body and spawn a new drone
                             Composite.remove(engine.world, found)
                             body.splice(body.indexOf(found), 1)
-                            b.delayDrones(found.position, 0.35 * Math.sqrt(found.mass))
+                            b.delayDrones(found.position, 0.5 * Math.sqrt(found.mass))
                             //draw a line from the drone to the body on the canvas
                             ctx.beginPath();
                             ctx.moveTo(this.position.x, this.position.y);
@@ -3502,6 +3500,11 @@ const b = {
         });
     },
     superBall(where, velocity, radius) {
+        let gravity = 0.001
+        if (tech.superBallDelay) {
+            velocity = Vector.mult(velocity, 1.4)
+            gravity *= 6
+        }
         let dir = m.angle
         const me = bullet.length;
         bullet[me] = Bodies.polygon(where.x, where.y, 12, radius, b.fireAttributes(dir, false));
@@ -3517,10 +3520,10 @@ const b = {
         bullet[me].frictionStatic = 0;
         if (tech.isSuperHarm) {
             bullet[me].collidePlayerDo = function () {
-                this.force.y += this.mass * 0.001;
+                this.force.y += this.mass * gravity;;
                 if (Matter.Query.collides(this, [player]).length) {
                     this.endCycle = 0
-                    m.energy -= 0.05
+                    m.energy -= 0.04
                     if (m.energy < 0) m.energy = 0
                     simulation.drawList.push({ //add dmg to draw queue
                         x: this.position.x,
@@ -3541,7 +3544,7 @@ const b = {
             bullet[me].portFrequency = 25 + Math.floor(10 * Math.random())
             bullet[me].nextPortCycle = simulation.cycle + bullet[me].portFrequency
             bullet[me].do = function () {
-                this.force.y += this.mass * 0.001;
+                this.force.y += this.mass * gravity;
                 if (this.nextPortCycle < simulation.cycle) { //teleport around if you have tech.isBulletTeleport
                     this.nextPortCycle = simulation.cycle + this.portFrequency
                     const range = 33 * Math.sqrt(radius) * Math.random()
@@ -3551,15 +3554,15 @@ const b = {
             };
         } else {
             bullet[me].do = function () {
-                this.force.y += this.mass * 0.001;
+                this.force.y += this.mass * gravity;
             };
         }
         bullet[me].beforeDmg = function (who) {
             if (!who.isInvulnerable) {
                 if (tech.oneSuperBall) mobs.statusStun(who, 120) // (2.3) * 2 / 14 ticks (2x damage over 7 seconds)
                 if (tech.isFoamBall) {
-                    for (let i = 0, len = 5 * this.mass; i < len; i++) {
-                        const radius = 5 + 8 * Math.random()
+                    for (let i = 0, len = 6 * this.mass; i < len; i++) {
+                        const radius = 6 + 9 * Math.random()
                         const velocity = { x: Math.max(0.5, 2 - radius * 0.1), y: 0 }
                         b.foam(this.position, Vector.rotate(velocity, 6.28 * Math.random()), radius)
                     }
@@ -3573,7 +3576,6 @@ const b = {
                         Matter.Body.setDensity(bullet[me], bullet[me].calcDensity() * 1.33);//33% more density and damage
                         this.endCycle = simulation.cycle + Math.floor(300 + 90 * Math.random()); //reset to full duration of time
                         Matter.Body.setVelocity(this, Vector.mult(Vector.normalise(this.velocity), 60)); //reset to high velocity
-
                         let count = 5
                         const wait = () => {
                             count--
@@ -3587,7 +3589,6 @@ const b = {
                             });
                         }
                         requestAnimationFrame(wait);
-
                         simulation.drawList.push({ //add dmg to draw queue
                             x: this.position.x,
                             y: this.position.y,
@@ -5898,10 +5899,7 @@ const b = {
             have: false,
             // num: 5,
             do() { },
-            foamBall() {
-
-
-            },
+            foamBall() { },
             fireOne() {
                 m.fireCDcycle = m.cycle + Math.floor((m.crouch ? 27 : 19) * b.fireCDscale); // cool down
                 const speed = m.crouch ? 43 : 36
@@ -5918,21 +5916,33 @@ const b = {
                 const SPREAD = m.crouch ? 0.08 : 0.13
                 const num = 3 + Math.floor(tech.extraSuperBalls * Math.random())
                 const speed = m.crouch ? 43 : 36
-                let dir = m.angle - SPREAD * (num - 1) / 2;
-                for (let i = 0; i < num; i++) {
-                    b.superBall({
-                        x: m.pos.x + 30 * Math.cos(dir),
-                        y: m.pos.y + 30 * Math.sin(dir)
-                    }, {
-                        x: speed * Math.cos(dir),
-                        y: speed * Math.sin(dir)
-                    }, 11 * tech.bulletSize)
-                    dir += SPREAD;
+                if (tech.isBulletTeleport) {
+                    for (let i = 0; i < num; i++) {
+                        b.superBall({
+                            x: m.pos.x + 30 * Math.cos(m.angle),
+                            y: m.pos.y + 30 * Math.sin(m.angle)
+                        }, {
+                            x: speed * Math.cos(m.angle),
+                            y: speed * Math.sin(m.angle)
+                        }, 11 * tech.bulletSize)
+                    }
+                } else {
+                    let dir = m.angle - SPREAD * (num - 1) / 2;
+                    for (let i = 0; i < num; i++) {
+                        b.superBall({
+                            x: m.pos.x + 30 * Math.cos(dir),
+                            y: m.pos.y + 30 * Math.sin(dir)
+                        }, {
+                            x: speed * Math.cos(dir),
+                            y: speed * Math.sin(dir)
+                        }, 11 * tech.bulletSize)
+                        dir += SPREAD;
+                    }
                 }
             },
             fireQueue() {
                 m.fireCDcycle = m.cycle + Math.floor((m.crouch ? 23 : 15) * b.fireCDscale); // cool down
-                const num = 1 + 3 + Math.floor(tech.extraSuperBalls * Math.random()) //1 extra 
+                const num = 2 + 3 + Math.floor(tech.extraSuperBalls * Math.random()) //2 extra 
                 const speed = m.crouch ? 43 : 36
 
                 const delay = Math.floor((m.crouch ? 18 : 12) * b.fireCDscale)
@@ -5951,8 +5961,6 @@ const b = {
                 }
                 let count = 0
                 requestAnimationFrame(cycle);
-
-
             },
             chooseFireMethod() { //set in simulation.startGame
                 if (tech.oneSuperBall) {
@@ -7260,7 +7268,7 @@ const b = {
             lensDamageOn: 0, //set in tech
             lens() {
                 this.stuckOn();
-                this.angle += 0.02
+                this.angle += 0.03
                 if (this.isInsideArc(m.angle)) {
                     this.lensDamage = this.lensDamageOn
                     ctx.lineWidth = 6 + this.lensDamageOn
