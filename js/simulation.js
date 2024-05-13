@@ -888,22 +888,34 @@ const simulation = {
 
                         }
                         if (tech.cyclicImmunity && m.immuneCycle < m.cycle + tech.cyclicImmunity) m.immuneCycle = m.cycle + tech.cyclicImmunity; //player is immune to damage for 60 cycles
-
-                        fallCheck = function (who, save = false) {
+                        /** Out of bound bodies check
+                         * @param {[]} who
+                         * @param {bool} save
+                         */
+                        function fallCheck (who, save = false) {
                             let i = who.length;
-                            while (i--) {
-                                if (who[i].position.y > simulation.fallHeight) {
-                                    if (save) {
-                                        Matter.Body.setVelocity(who[i], { x: 0, y: 0 });
-                                        Matter.Body.setPosition(who[i], {
-                                            x: level.exit.x + 30 * (Math.random() - 0.5),
-                                            y: level.exit.y + 30 * (Math.random() - 0.5)
-                                        });
-                                    } else {
-                                        Matter.Composite.remove(engine.world, who[i]);
-                                        who.splice(i, 1);
-                                    }
+                            if(save) {
+                            // grid spirally thingy https://stackoverflow.com/a/76847676
+                            let v     = [0, 0]
+                            let r     = 1
+                            let axis  = 0
+                            let delta = 1
+                            while (i--) if (who[i].position.y > simulation.fallHeight) {
+                                v[axis] += delta
+                                if (Math.abs(v[axis]) == r) {
+                                    axis = axis ? 0 : 1
+                                    if (axis) delta = delta < 0 ? 1 : -1;
+                                    else if (0 < delta) r++
                                 }
+                                Matter.Body.setVelocity(who[i], { x: 0, y: 0 });
+                                Matter.Body.setPosition(who[i], {
+                                    x: level.exit.x + 30 * v[0],
+                                    y: level.exit.y + 30 * v[1]
+                                });
+                            }}
+                            else while (i--) if (who[i].position.y > simulation.fallHeight) {
+                                Matter.Composite.remove(engine.world, who[i]);
+                                who.splice(i, 1);
                             }
                         };
                         fallCheck(body);

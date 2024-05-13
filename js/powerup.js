@@ -1,6 +1,14 @@
 let powerUp = [];
 
 const powerUps = {
+    /** Removes the given powerup by index from the world and this array
+     * @param {number} i - index 
+     */
+    fullRemove (i) {
+        Matter.Composite.remove(engine.world, powerUp[i]);
+        powerUp.splice(i, 1);
+    },
+    trueCount: 0,
     ejectGraphic(color = "68, 102, 119") {
         simulation.drawList.push({
             x: m.pos.x,
@@ -204,11 +212,12 @@ const powerUps = {
     },
     draw() { },
     drawCircle() {
-        ctx.globalAlpha = 0.4 * Math.sin(simulation.cycle * 0.15) + 0.6;
+        let flash = 0.4 * Math.sin(simulation.cycle * 0.15) + 0.5;
         for (let i = 0, len = powerUp.length; i < len; ++i) {
             ctx.beginPath();
             ctx.arc(powerUp[i].position.x, powerUp[i].position.y, powerUp[i].size, 0, 2 * Math.PI);
             ctx.fillStyle = powerUp[i].color;
+            ctx.globalAlpha = 1 - flash * (1 - powerUp[i].cram / 1248) //Less flashing the more crammed a powerup is
             ctx.fill();
         }
         ctx.globalAlpha = 1;
@@ -1540,7 +1549,9 @@ const powerUps = {
             color: powerUps[target].color,
             effect: powerUps[target].effect,
             name: powerUps[target].name,
-            size: size
+            size: size,
+            internalCount: 1,
+            cram: 0
         }
         let polygonSides
         if (isDuplicated) {
@@ -1548,12 +1559,13 @@ const powerUps = {
             properties.isDuplicated = true
         } else {
             properties.inertia = Infinity //prevents rotation for circles only
-            polygonSides = 0
+            polygonSides = 8
         }
         powerUp[index] = Matter.Bodies.polygon(x, y, polygonSides, size, properties);
         if (mode) powerUp[index].mode = mode
         if (moving) Matter.Body.setVelocity(powerUp[index], { x: (Math.random() - 0.5) * 15, y: Math.random() * -9 - 3 });
         Composite.add(engine.world, powerUp[index]);
+        powerUps.trueCount++
     },
     spawn(x, y, target, moving = true, mode = null, size = powerUps[target].size()) {
         if (
