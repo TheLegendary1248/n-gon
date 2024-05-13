@@ -1,31 +1,124 @@
 ******************************************************** NEXT PATCH **************************************************
 
-adjusted text and math for the fire rate system to use the new "x" syntax
-tech search is no longer case sensitive
+tech: anyon - 2x energy after duplicating a power up, +6% duplication chance
+tech: Abelian group - 4x damage while invulnerable
+tech: fermion - become invulnerable for 5 seconds after a mob dies
+tech: entropic gravity - crouching pulls MACHO towards the player, and 1.5x to all MACHO effects (damage, damage reduction, AoE damage)
+tech: modified Newtonian dynamics - +20 speed for all Newtonian law tech
 
-Zectron 1.9->2x damage, -25% -> -5 energy
-exothermic process -20% -> -5 energy
+choice, MACHO, invulnerable, speed - have text keyword CSS style
+removed chance to find a random tech in early levels from mobs
+  this reduces tech per full game by about 2
+tower level has a few changes
+options exchange only works once per level, but it gives 3x choices after randomizing
+dark star has a 1.2->1.3x MACHO radius
+autocannon fires 1->2 extra super balls, but balls have higher gravity
+grappling hook field starts with 0.6x damage reduction
+super balls + uncertainty principle makes all balls start in the same spot and only separate after teleporting
+ablative drones spawns 50% more drones on collision
+von Neumann probe gives 40% more drones per block mass
+  also added text clarification that it uses 5 energy
+tech lens rotates 50% faster
+ghoster mobs are more aggressive once they have lost 20% health
+sneakBoss doesn't start accelerating until it is partly uncloaked, but it spawns sneaker mobs after cloaking
 
-instant/unRemovable tech has a unique icon and no longer shows up in the tech list
-  marginal utility - no longer spawns ammo
-  heuristics - no longer spawn a gun, 1.2->1.3 fire rate
-  open-source - gives 1 extra bot option and 3x bot tech frequency
-  robotics - now just spawns 2 bots
-  induction brake - doesn't spawn heals, but lasts 15->17 seconds
-  accretion - doesn't spawn heals, but gets 3% duplication
-  mass production - doesn't spawn power ups, but gets 3% duplication
-  Ψ(t) collapse - doesn't spawn research, spawns 5 research from bosses
-  decoherence - doesn't spawn research, spawns 2 research from bosses
-  fine-structure constant - doesn't spawn coupling, spawn 9 coupling from bosses
-  Bayesian statistics - 1.03->1.05x damage, doesn't spawn research
-  Born rule code rewritten, but it should have a similar effect as before
-  triple point - 1.5->5 second freeze, but no coupling spawn
-  geodesics - no longer spawns ammo and guns, but gives 1.5x damage
-  ideal gas law - doesn't remove ammo, 12->6x foam ammo per ammo power up
+fixed bug with 2 different boost power up sizes
+paradigm shift doesn't do damage while player is invulnerable
+random internet JUNK images disabled because some of the images are bad
+entanglement bug fix, maybe
+
+******************************************************* DESIGN ******************************************************
+
+priorities
+  synergies between tech
+    difficult to achieve synergies that feel so powerful they are game breaking / changing
+  randomized content adds repeatability
+    bosses, mobs, levels, tech
+  graphical indicators of tech effects and quantity
+  subtle lore woven into unexpected places
+
+add more randomize sub level map content
+  left/right sides of lock
+  small lab rooms
+
+powerful synergies
+  CPT + high energy regen
+  research + bot fabrication + ersatz bots + various bot upgrades
+  harpoon + high fire rate + alternator + time dilation
+  duplication 100%
+  interest + coupling, research + (peer review? or Bayesian statistics)
+  electronegativity and high energy?
+    electronegativity + anyon + duplication + Maxwells demon + interest
+  chain reaction + invulnerable + Abelian group + parasitism = clear all mobs on level
 
 *********************************************************** TODO *****************************************************
 
+make each difficulty level have specific listed changes
+  to motivate people to try that difficulty to see the difference
+  make difficulty easier to see
+    in pause menu
+    before game begins
+  automatically increase difficulty when player wins?
+  difficulty based changes (maybe in the order)
+    more bosses
+    more mobs
+    mobs attack faster
+    mobs move faster
+    reduced heals
+    reduced damage done
+    increased damage taken
+    mobs regen health
+    -1 choice for tech, field, gun
+    no starting power ups (heal, research)
+    starting JUNK chance?
+
+bug Newton's 1st law image not showing up on github server
+  shows up on n-gon, and landgreen  github, but webp file isn't loading onto server?
+  try name change,
+  wait and see if next patch fixes it
+
+Boss mob - takes a snapshot of the positions of all mobs, player, blocks, power ups.  Then 3 seconds later it teleports everything back to those spots.
+  after snap shot is stored draw outline of body positions for a second to show the change
+  immune after snapshot?   or  immune after teleport?
+
+flip player upside down
+  how 
+    rotate player in matter.js
+      make sure floor sensor works
+    flip player crouch direction
+    redraw legs, orb
+    flip gravity
+  when to use?
+    fieldTech: negative mass?
+    effect in level
+
+tech - after a power up is duplicated
+  update text to random effect after choosing tech, or after each trigger, or on first display of tech
+  pick 1 effect at random
+    become immune to damage taken for 5 seconds
+    summon JUNK bots for 10 seconds
+    2x current energy
+    gain 1.01x damage permanently
+  cool name: 
+
+field tech: negative mass - quickly pull/teleport in all nearby blocks and then fire them away from player
+  how does player triggers effect?
+    picking up a block pulls in all nearby blocks, throwing block fires all nearby blocks
+    taking damage
+  auto aim 50% of blocks at mobs
+
+after picking up heals gain ____
+  0.1x damage taken for 12s
+after picking up ammo gain ____
+  4x fire rate for 12s
+after picking up research gain ____
+  +10 choices for 12s
+
+tech: Energy generation increases with you velocity
+  Newtons' 3rd law?
+
 after clicking on a new tech (or getting it in any way) animate adding the tech to your collection
+  fade in on right side text list?
 
 tech - getting caught in an explosion gives you _____
   damage for 10 seconds?
@@ -51,14 +144,6 @@ make sure healing isn't effected by simulation.healScale
     but the ratio between size and heal shouldn't be effected
 
 tech - destroys a random tech each new level and gains +damage each time
-
-List of ways to break the game
-  CPT + high energy regen
-  research -> bot fabrication -> ersatz bots -> various bot upgrades
-  grappling hook + high fire rate + alternator + time dilation
-  duplication 100%
-  interest + coupling, research + peer review?
-  electronegativity and high energy?
 
 boss - tracks the position, velocity, angle of power ups, blocks, and bullets it fires
   reactor only?
@@ -1182,8 +1267,11 @@ possible names for tech
   retrovirus: these things make JUNK DNA so link it somehow to that tech?
     Upon infection with a retrovirus, a cell converts the retroviral RNA into DNA and sometimes the DNA will be passed on to progeny as JUNK DNA
   amalgam, amalgamation - the action, process, or result of combining or uniting. 
+  thermoplastic - the stuff in 3-D printers, use for molecular assembler tech
+  ergosphere - region of a spinning black hole that might allow FTL or alternate realities.
+  equivalence principle - gravity and acceleration are the same
 
-******************************************************** CARS IMAGES ********************************************************
+******************************************************** IMAGES ********************************************************
 
 process:  discord midjourney prompts -> "pixelmator pro" adjust color, repair, scale to 384x256, export PNG -> webP? -> place in /img folder
 make n-gon a progressive web app to manage image downloads, cache

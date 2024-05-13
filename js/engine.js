@@ -1,4 +1,5 @@
 //matter.js ***********************************************************
+
 // module aliases
 const Engine = Matter.Engine,
     Events = Matter.Events,
@@ -9,7 +10,8 @@ const Engine = Matter.Engine,
     Query = Matter.Query,
     Body = Matter.Body,
     Bodies = Matter.Bodies,
-    Vector = Matter.Vector;
+    Vector = Matter.Vector,
+    Sleeping = Matter.Sleeping;
 
 // create an engine
 const engine = Engine.create();
@@ -94,7 +96,6 @@ function collisionChecks(event) {
                     collideMob(pairs[i].bodyA);
                     break;
                 }
-
                 function collideMob(obj) {
                     //player + mob collision
                     if (
@@ -108,33 +109,8 @@ function collisionChecks(event) {
                             m.damage(dmg);
                             return
                         }
-                        if (tech.isFlipFlop) {
-                            if (tech.isFlipFlopOn) {
-                                tech.isFlipFlopOn = false
-                                if (document.getElementById("tech-flip-flop")) document.getElementById("tech-flip-flop").innerHTML = ` = <strong>OFF</strong>`
-                                m.eyeFillColor = 'transparent'
-                                m.damage(dmg);
-                            } else {
-                                tech.isFlipFlopOn = true //immune to damage this hit, lose immunity for next hit
-                                if (document.getElementById("tech-flip-flop")) document.getElementById("tech-flip-flop").innerHTML = ` = <strong>ON</strong>`
-                                m.eyeFillColor = m.fieldMeterColor //'#0cf'
-                                if (!tech.isFlipFlopHarm) m.damage(dmg);
-                            }
-                            if (tech.isFlipFlopHealth) {
-                                m.setMaxHealth();
-                                for (let i = 0; i < powerUp.length; i++) {
-                                    if (powerUp[i].name === "heal") {
-                                        const oldSize = powerUp[i].size
-                                        powerUp[i].size = powerUps.heal.size() //update current heals
-                                        const scale = powerUp[i].size / oldSize
-                                        Matter.Body.scale(powerUp[i], scale, scale); //grow    
-                                    }
-                                }
-                            }
-                        } else {
-                            m.damage(dmg); //normal damage
-                        }
-
+                        m.damage(dmg); //normal damage
+                        
                         if (tech.isCollisionRealitySwitch && m.alive) {
                             m.switchWorlds()
                             simulation.trails()
@@ -143,7 +119,7 @@ function collisionChecks(event) {
                         if (tech.isPiezo) m.energy += 20.48;
                         if (tech.isCouplingNoHit && m.coupling > 0) {
                             m.couplingChange(-4)
-
+                            
                             const unit = Vector.rotate({ x: 1, y: 0 }, 6.28 * Math.random())
                             let where = Vector.add(m.pos, Vector.mult(unit, 17))
                             simulation.drawList.push({ //add dmg to draw queue
@@ -183,26 +159,26 @@ function collisionChecks(event) {
                             let count = maxCount - 1
                             const angle = Math.atan2(mob[k].position.y - player.position.y, mob[k].position.x - player.position.x);
                             b.harpoon(m.pos, mob[k], angle, 0.75, true, 7) // harpoon(where, target, angle = m.angle, harpoonSize = 1, isReturn = false, totalCycles = 35, isReturnAmmo = true, thrust = 0.1) {
-                            bullet[bullet.length - 1].drain = 0
-                            for (; count > 0; count--) {
-                                b.harpoon(m.pos, mob[k], angle + count * 2 * Math.PI / maxCount, 0.75, true, 7)
                                 bullet[bullet.length - 1].drain = 0
+                                for (; count > 0; count--) {
+                                    b.harpoon(m.pos, mob[k], angle + count * 2 * Math.PI / maxCount, 0.75, true, 7)
+                                    bullet[bullet.length - 1].drain = 0
+                                }
                             }
-                        }
-                        if (tech.isStimulatedEmission) powerUps.ejectTech()
-                        if (mob[k].onHit) mob[k].onHit();
-                        if (m.immuneCycle < m.cycle + m.collisionImmuneCycles) m.immuneCycle = m.cycle + m.collisionImmuneCycles; //player is immune to damage for 30 cycles
-                        //extra kick between player and mob              //this section would be better with forces but they don't work...
-                        let angle = Math.atan2(player.position.y - mob[k].position.y, player.position.x - mob[k].position.x);
-                        Matter.Body.setVelocity(player, {
-                            x: player.velocity.x + 8 * Math.cos(angle),
+                            if (tech.isStimulatedEmission) powerUps.ejectTech()
+                            if (mob[k].onHit) mob[k].onHit();
+                            if (m.immuneCycle < m.cycle + m.collisionImmuneCycles) m.immuneCycle = m.cycle + m.collisionImmuneCycles; //player is immune to damage for 30 cycles
+                            //extra kick between player and mob              //this section would be better with forces but they don't work...
+                            let angle = Math.atan2(player.position.y - mob[k].position.y, player.position.x - mob[k].position.x);
+                            Matter.Body.setVelocity(player, {
+                                x: player.velocity.x + 8 * Math.cos(angle),
                             y: player.velocity.y + 8 * Math.sin(angle)
                         });
                         Matter.Body.setVelocity(mob[k], {
                             x: mob[k].velocity.x - 8 * Math.cos(angle),
                             y: mob[k].velocity.y - 8 * Math.sin(angle)
                         });
-
+                        
                         if (tech.isAnnihilation && !mob[k].shield && !mob[k].isShielded && !mob[k].isBoss && mob[k].isDropPowerUp && m.energy > 0.1 && mob[k].damageReduction > 0) {
                             m.energy -= 0.1 //* Math.max(m.maxEnergy, m.energy) //0.33 * m.energy
                             if (m.immuneCycle === m.cycle + m.collisionImmuneCycles) m.immuneCycle = 0; //player doesn't go immune to collision damage
@@ -265,18 +241,18 @@ function collisionChecks(event) {
                                         });
                                     }
                                 }
-
+                                
                                 let dmg = tech.blockDamage * m.dmgScale * v * obj.mass * (tech.isMobBlockFling ? 2.5 : 1) * (tech.isBlockRestitution ? 2.5 : 1) * ((m.fieldMode === 0 || m.fieldMode === 8) ? 1 + 0.05 * m.coupling : 1);
                                 if (mob[k].isShielded) dmg *= 0.7
-
+                                
                                 mob[k].damage(dmg, true);
                                 if (tech.isBlockPowerUps && !mob[k].alive && mob[k].isDropPowerUp && m.throwCycle > m.cycle) {
                                     options = ["coupling", "boost", "heal", "research"]
                                     if (!tech.isEnergyNoAmmo) options.push("ammo")
                                     powerUps.spawn(mob[k].position.x, mob[k].position.y, options[Math.floor(Math.random() * options.length)]);
-                                }
-
-                                const stunTime = dmg / Math.sqrt(obj.mass)
+                            }
+                            
+                            const stunTime = dmg / Math.sqrt(obj.mass)
                                 if (stunTime > 0.5 && mob[k].memory !== Infinity) mobs.statusStun(mob[k], 60 + 60 * Math.sqrt(stunTime))
                                 if (mob[k].alive && mob[k].distanceToPlayer2() < 1000000 && !m.isCloak) mob[k].foundPlayer();
                                 if (tech.fragments && obj.speed > 10 && !obj.hasFragmented) {
@@ -302,6 +278,40 @@ function collisionChecks(event) {
     }
 }
 
+function powerUpMerge(event)
+{
+    const pairs = event.pairs;
+    for (let i = 0, j = pairs.length; i != j; i++) {
+        let pair = event.pairs[i]
+        let bodyA = pair.bodyA, bodyB = pair.bodyB;
+        if (bodyA.collisionFilter.category == cat.powerUp && bodyB.collisionFilter.category == cat.powerUp) {
+            const mergeables = ["heal", "coupling", "research", "boost", "ammo"]
+            //Can merge, is same type, and not duplicated(come back to this)
+            if(mergeables.includes(bodyA.name) && (bodyA.name == bodyB.name) && !bodyA.isDuplicated && !bodyB.isDuplicated)
+            {
+                //Either of these two powerups aren't in the array anymore, probably from merging
+                if(!powerUp.includes(bodyA) || !powerUp.includes(bodyB))
+                    continue;
+                bodyA.cram++
+                bodyB.cram++
+                //Merge if powerup has been crammed for long enough
+                if(bodyA.cram + bodyB.cram < 1248)
+                    continue;
+                let powerUpIndex = powerUp.indexOf(bodyB)
+                if (powerUpIndex != -1)
+                    powerUps.fullRemove(powerUpIndex)
+                bodyA.cram = (bodyA.cram + bodyB.cram) - 1248
+                let prevCt = bodyA.internalCount
+                bodyA.internalCount += bodyB.internalCount
+                let scaleBy = Math.sqrt(bodyA.internalCount / prevCt)
+                bodyA.size *= scaleBy
+                Body.scale(bodyA, scaleBy, scaleBy)
+            }
+            continue;
+        }
+    }
+}
+//we can optimize this
 //determine if player is on the ground
 Events.on(engine, "collisionStart", function (event) {
     playerOnGroundCheck(event);
@@ -310,6 +320,7 @@ Events.on(engine, "collisionStart", function (event) {
 });
 Events.on(engine, "collisionActive", function (event) {
     playerOnGroundCheck(event);
+    powerUpMerge(event)
     // playerHeadCheck(event);
 });
 Events.on(engine, "collisionEnd", function (event) {

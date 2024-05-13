@@ -1,6 +1,14 @@
 let powerUp = [];
 
 const powerUps = {
+    /** Removes the given powerup by index from the world and this array
+     * @param {number} i - index 
+     */
+    fullRemove (i) {
+        Matter.Composite.remove(engine.world, powerUp[i]);
+        powerUp.splice(i, 1);
+    },
+    trueCount: 0,
     ejectGraphic(color = "68, 102, 119") {
         simulation.drawList.push({
             x: m.pos.x,
@@ -204,11 +212,12 @@ const powerUps = {
     },
     draw() { },
     drawCircle() {
-        ctx.globalAlpha = 0.4 * Math.sin(simulation.cycle * 0.15) + 0.6;
+        let flash = 0.4 * Math.sin(simulation.cycle * 0.15) + 0.5;
         for (let i = 0, len = powerUp.length; i < len; ++i) {
             ctx.beginPath();
             ctx.arc(powerUp[i].position.x, powerUp[i].position.y, powerUp[i].size, 0, 2 * Math.PI);
             ctx.fillStyle = powerUp[i].color;
+            ctx.globalAlpha = 1 - flash * (1 - powerUp[i].cram / 1248) //Less flashing the more crammed a powerup is
             ctx.fill();
         }
         ctx.globalAlpha = 1;
@@ -247,12 +256,14 @@ const powerUps = {
             if (powerUp[i].isDuplicated) {
                 if (Math.random() < 0.003 && !m.isBodiesAsleep) { //  (1-0.003)^240 = chance to be removed after 4 seconds,   240 = 4 seconds * 60 cycles per second
                     b.explosion(powerUp[i].position, 175 + (11 + 3 * Math.random()) * powerUp[i].size);
-                    Matter.Composite.remove(engine.world, powerUp[i]);
-                    powerUp.splice(i, 1);
+                    if (powerUp[i]) {
+                        Matter.Composite.remove(engine.world, powerUp[i]);
+                        powerUp.splice(i, 1);
+                    }
                     break
                 }
                 if (Math.random() < 0.3) {  //draw electricity
-                    const mag = 4 + powerUp[i].size / 5
+                    const mag = Math.max(1, 4 + powerUp[i].size / 5)
                     let unit = Vector.rotate({ x: mag, y: mag }, 2 * Math.PI * Math.random())
                     let path = { x: powerUp[i].position.x + unit.x, y: powerUp[i].position.y + unit.y }
                     ctx.beginPath();
@@ -323,7 +334,7 @@ const powerUps = {
                 simulation.circleFlare(value);
             }
             if (tech.isCancelRerolls) {
-                for (let i = 0, len = 10 + 4 * Math.random(); i < len; i++) {
+                for (let i = 0, len = 8 + 4 * Math.random(); i < len; i++) {
                     let spawnType
                     if (Math.random() < 0.4 && !tech.isEnergyNoAmmo) {
                         spawnType = "ammo"
@@ -343,7 +354,7 @@ const powerUps = {
                 return
             }
         }
-        tech.cancelTechCount = 0
+
         if (tech.isAnsatz && powerUps.research.count < 1) {
             for (let i = 0; i < 3; i++) powerUps.spawn(m.pos.x + 40 * (Math.random() - 0.5), m.pos.y + 40 * (Math.random() - 0.5), "research", false);
         }
@@ -493,7 +504,7 @@ const powerUps = {
         name: "heal",
         color: "#0eb",
         size() {
-            return Math.sqrt(0.1 + 0.25) * 40 * (simulation.healScale ** 0.25) * Math.sqrt(tech.largerHeals * (tech.isHalfHeals ? 0.5 : 1)) * (tech.isFlipFlopOn && tech.isFlipFlopHealth ? Math.sqrt(2) : 1); //(simulation.healScale ** 0.25)  gives a smaller radius as heal scale goes down
+            return Math.sqrt(0.1 + 0.25) * 40 * (simulation.healScale ** 0.25) * Math.sqrt(tech.largerHeals * (tech.isHalfHeals ? 0.5 : 1)); //(simulation.healScale ** 0.25)  gives a smaller radius as heal scale goes down
         },
         effect() {
             if (!tech.isEnergyHealth && m.alive) {
@@ -620,7 +631,7 @@ const powerUps = {
         if (tech.isSuperDeterminism) {
             return `<div></div>`
         } else if (tech.isCancelTech && tech.cancelTechCount === 0) {
-            return `<div class='cancel-card' onclick='powerUps.endDraft("${type}",true)' style="width: 115px;">randomize</div>`
+            return `<div class='cancel-card' onclick='powerUps.endDraft("${type}",true)' style="width: 115px;"><span class="color-randomize">randomize</span></div>`
         } else if (level.levelsCleared === 0 && localSettings.isTrainingNotAttempted && b.inventory.length === 0) { //don't show cancel if on initial level and haven't done tutorial
             return `<div class='cancel-card'  style="visibility: hidden;"></div>`
         } else {
@@ -672,7 +683,7 @@ const powerUps = {
         if (tech.isSuperDeterminism) {
             text += `<span class='cancel-card' style="width: 95px;float: right;background-color: #aaa;color:#888;">cancel</span>`
         } else if (tech.isCancelTech && tech.cancelTechCount === 0) {
-            text += `<span class='cancel-card' onclick='powerUps.endDraft("${type}",true)' style="width: 115px;float: right;font-size:0.9em;padding-top:5px">randomize</span>`
+            text += `<span class='cancel-card' onclick='powerUps.endDraft("${type}",true)' style="width: 115px;float: right;font-size:0.9em;padding-top:5px;"><span class="color-randomize">randomize</span></span>`
         } else if (level.levelsCleared === 0 && localSettings.isTrainingNotAttempted && b.inventory.length === 0) {
             text += `<span class='cancel-card' style="visibility: hidden;">cancel</span>` //don't show cancel if on initial level and haven't done tutorial
         } else {
@@ -783,35 +794,101 @@ const powerUps = {
                 &nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; ${tech.tech[choose].name} ${techCountText}</div>
                 ${tech.tech[choose].descriptionFunction ? tech.tech[choose].descriptionFunction() : tech.tech[choose].description}</div></div>`
     },
+    // junkTechText(choose, click) { //old code with yahoo images
+    //     const techCountText = tech.tech[choose].count > 0 ? `(${tech.tech[choose].count + 1}x)` : "";
+    //     const style = localSettings.isHideImages ? powerUps.hideStyle : `style="background-size: contain;background-repeat: no-repeat;background-image: url('img/junk.webp');"`
+    //     if (!localSettings.isHideImages) {
+    //         setTimeout(() => { //delay so that the html element exists
+    //             if (tech.tech[choose].url === undefined) { //if on url has been set yet
+    //                 const url = "https://images.search.yahoo.com/search/images?p=" + tech.tech[choose].name;
+    //                 fetch(url, { signal: AbortSignal.timeout(1000) }) //give up if it takes over 1 second
+    //                     .then((response) => response.text())
+    //                     .then((html) => {
+    //                         const parser = new DOMParser();
+    //                         const doc = parser.parseFromString(html, "text/html");
+    //                         const elements = doc.getElementsByClassName("ld");
+    //                         // console.log(i, elements[i].getAttribute("data"), JSON.parse(elements[i].getAttribute("data")).iurl)
+    //                         const index = Math.floor(Math.random() * 4) //randomly choose from the first 4 images
+    //                         if (parseInt(JSON.parse(elements[index].getAttribute("data")).s.slice(0, -2)) < 500) { //make sure it isn't too big
+    //                             tech.tech[choose].url = JSON.parse(elements[index].getAttribute("data")).iurl //store the url
+    //                             document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')` //make the url the background image
+    //                         } else if (parseInt(JSON.parse(elements[index + 1].getAttribute("data")).s.slice(0, -2)) < 500) { //try a different images and see if it is smaller
+    //                             tech.tech[choose].url = JSON.parse(elements[index + 1].getAttribute("data")).iurl
+    //                             document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')`
+    //                         } else if (parseInt(JSON.parse(elements[index + 2].getAttribute("data")).s.slice(0, -2)) < 500) { //try a different images and see if it is smaller
+    //                             tech.tech[choose].url = JSON.parse(elements[index + 2].getAttribute("data")).iurl
+    //                             document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')`
+    //                         }
+    //                     });
+    //             } else {
+    //                 document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')`
+    //             }
+    //         }, 1);
+    //     }
+    //     return `<div id = "junk-${choose}" class="choose-grid-module card-background" onclick="${click}" onauxclick="${click}"${style}>
+    //             <div class="card-text">
+    //             <div class="grid-title"><div class="circle-grid junk"></div> &nbsp; ${tech.tech[choose].name} ${techCountText}</div>
+    //             ${tech.tech[choose].descriptionFunction ? tech.tech[choose].descriptionFunction() : tech.tech[choose].description}</div></div>`
+    // },
+    // junkTechText(choose, click) {
+    //     const techCountText = tech.tech[choose].count > 0 ? `(${tech.tech[choose].count + 1}x)` : "";
+    //     const style = localSettings.isHideImages ? powerUps.hideStyle : `style="background-size: contain;background-repeat: no-repeat;background-image: url('img/junk.webp');"`
+    //     if (!localSettings.isHideImages) {
+    //         setTimeout(() => { //delay so that the html element exists
+    //             if (tech.tech[choose].url === undefined) { //if on url has been set yet
+    //                 const url = "https://images.search.yahoo.com/search/images?p=" + tech.tech[choose].name;
+    //                 fetch(url, { signal: AbortSignal.timeout(1000) }) //give up if it takes over 1 second
+    //                     .then((response) => response.text())
+    //                     .then((html) => {
+    //                         const parser = new DOMParser();
+    //                         const doc = parser.parseFromString(html, "text/html");
+    //                         const elements = doc.getElementsByClassName("ld");
+    //                         // console.log(i, elements[i].getAttribute("data"), JSON.parse(elements[i].getAttribute("data")).iurl)
+    //                         const index = Math.floor(Math.random() * 4) //randomly choose from the first 4 images
+    //                         if (parseInt(JSON.parse(elements[index].getAttribute("data")).s.slice(0, -2)) < 500) { //make sure it isn't too big
+    //                             tech.tech[choose].url = JSON.parse(elements[index].getAttribute("data")).iurl //store the url
+    //                             document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')` //make the url the background image
+    //                         } else if (parseInt(JSON.parse(elements[index + 1].getAttribute("data")).s.slice(0, -2)) < 500) { //try a different images and see if it is smaller
+    //                             tech.tech[choose].url = JSON.parse(elements[index + 1].getAttribute("data")).iurl
+    //                             document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')`
+    //                         } else if (parseInt(JSON.parse(elements[index + 2].getAttribute("data")).s.slice(0, -2)) < 500) { //try a different images and see if it is smaller
+    //                             tech.tech[choose].url = JSON.parse(elements[index + 2].getAttribute("data")).iurl
+    //                             document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')`
+    //                         }
+    //                     });
+    //             } else {
+    //                 document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')`
+    //             }
+    //         }, 1);
+    //     }
+    //     return `<div id = "junk-${choose}" class="choose-grid-module card-background" onclick="${click}" onauxclick="${click}"${style}>
+    //             <div class="card-text">
+    //             <div class="grid-title"><div class="circle-grid junk"></div> &nbsp; ${tech.tech[choose].name} ${techCountText}</div>
+    //             ${tech.tech[choose].descriptionFunction ? tech.tech[choose].descriptionFunction() : tech.tech[choose].description}</div></div>`
+    // },
     junkTechText(choose, click) {
         const techCountText = tech.tech[choose].count > 0 ? `(${tech.tech[choose].count + 1}x)` : "";
         const style = localSettings.isHideImages ? powerUps.hideStyle : `style="background-size: contain;background-repeat: no-repeat;background-image: url('img/junk.webp');"`
         if (!localSettings.isHideImages) {
-            setTimeout(() => { //delay so that the html element exists
-                if (tech.tech[choose].url === undefined) { //if on url has been set yet
-                    const url = "https://images.search.yahoo.com/search/images?p=" + tech.tech[choose].name;
-                    fetch(url, { signal: AbortSignal.timeout(1000) }) //give up if it takes over 1 second
-                        .then((response) => response.text())
-                        .then((html) => {
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(html, "text/html");
-                            const elements = doc.getElementsByClassName("ld");
-                            const index = Math.floor(Math.random() * 4) //randomly choose from the first 4 images
-                            if (parseInt(JSON.parse(elements[index].getAttribute("data")).s.slice(0, -2)) < 500) { //make sure it isn't too big
-                                tech.tech[choose].url = JSON.parse(elements[index].getAttribute("data")).iurl //store the url
-                                document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')` //make the url the background image
-                            } else if (parseInt(JSON.parse(elements[index + 1].getAttribute("data")).s.slice(0, -2)) < 500) { //try a different images and see if it is smaller
-                                tech.tech[choose].url = JSON.parse(elements[index + 1].getAttribute("data")).iurl
-                                document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')`
-                            } else if (parseInt(JSON.parse(elements[index + 2].getAttribute("data")).s.slice(0, -2)) < 500) { //try a different images and see if it is smaller
-                                tech.tech[choose].url = JSON.parse(elements[index + 2].getAttribute("data")).iurl
-                                document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')`
-                            }
-                        });
-                } else {
-                    document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')`
-                }
-            }, 1);
+            // setTimeout(() => { //delay so that the html element exists
+            //     if (tech.tech[choose].url === undefined) { //if on url has been set yet
+            //         const url = `https://api.openverse.engineering/v1/images/?q=${tech.tech[choose].name}`;
+            //         fetch(url, { signal: AbortSignal.timeout(1000) }) //give up if it takes over 1 second
+            //             .then((response) => response.json())
+            //             .then((responseJson) => {
+            //                 if (responseJson.results.length > 0) {
+            //                     const index = Math.floor(Math.random() * responseJson.results.length) //randomly choose from the images
+            //                     tech.tech[choose].url = responseJson.results[index].url //store the url
+            //                     document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')` //make the url the background image
+            //                 }
+            //             });
+            //     } else {
+            //         document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')`
+            //     }
+            // }, 1);
+            // setTimeout(() => { //delay so that the html element exists
+            //     document.getElementById(`junk-${choose}`).style.backgroundImage = `url('${tech.tech[choose].url}')`
+            // }, 1);
         }
         return `<div id = "junk-${choose}" class="choose-grid-module card-background" onclick="${click}" onauxclick="${click}"${style}>
                 <div class="card-text">
@@ -839,8 +916,13 @@ const powerUps = {
                 }
                 // console.log(options.length)
                 if (options.length > 0 || !tech.isSuperDeterminism) {
-                    let totalChoices = Math.min(options.length, (tech.isDeterminism ? 1 : 2 + tech.extraChoices + 2 * (m.fieldMode === 8)))
-                    if (tech.isFlipFlopChoices) totalChoices += tech.isRelay ? (tech.isFlipFlopOn ? -1 : 7) : (tech.isFlipFlopOn ? 7 : -1) //flip the order for relay
+                    let totalChoices = 2 + tech.extraChoices + 2 * (m.fieldMode === 8)
+                    if (tech.isCancelTech && tech.cancelTechCount === 1) {
+                        totalChoices *= 3
+                        tech.cancelTechCount++
+                    }
+                    if (tech.isDeterminism) totalChoices = 1
+                    totalChoices = Math.min(options.length, totalChoices)
                     function removeOption(index) {
                         for (let i = 0; i < options.length; i++) {
                             if (options[i] === index) {
@@ -901,9 +983,14 @@ const powerUps = {
                 for (let i = 1; i < m.fieldUpgrades.length; i++) { //skip field emitter
                     if (i !== m.fieldMode) options.push(i);
                 }
-                let totalChoices = Math.min(options.length, (tech.isDeterminism ? 1 : 2 + tech.extraChoices + 2 * (m.fieldMode === 8)))
-                if (tech.isFlipFlopChoices) totalChoices += tech.isRelay ? (tech.isFlipFlopOn ? -1 : 7) : (tech.isFlipFlopOn ? 7 : -1) //flip the order for relay
-
+                // let totalChoices = Math.min(options.length, (tech.isDeterminism ? 1 : 2 + tech.extraChoices + 2 * (m.fieldMode === 8)))
+                let totalChoices = 2 + tech.extraChoices + 2 * (m.fieldMode === 8)
+                if (tech.isCancelTech && tech.cancelTechCount === 1) {
+                    totalChoices *= 3
+                    tech.cancelTechCount++
+                }
+                if (tech.isDeterminism) totalChoices = 1
+                totalChoices = Math.min(options.length, totalChoices)
                 function removeOption(index) {
                     for (let i = 0; i < options.length; i++) {
                         if (options[i] === index) {
@@ -976,8 +1063,15 @@ const powerUps = {
                     }
                 }
                 //set total choices
-                let totalChoices = (tech.isDeterminism ? 1 : 3 + tech.extraChoices + 2 * (m.fieldMode === 8))
-                if (tech.isFlipFlopChoices) totalChoices += tech.isRelay ? (tech.isFlipFlopOn ? -1 : 7) : (tech.isFlipFlopOn ? 7 : -1) //flip the order for relay
+                // let totalChoices = (tech.isDeterminism ? 1 : 3 + tech.extraChoices + 2 * (m.fieldMode === 8))
+                let totalChoices = 3 + tech.extraChoices + 2 * (m.fieldMode === 8)
+                if (tech.isCancelTech && tech.cancelTechCount === 1) {
+                    totalChoices *= 3
+                    tech.cancelTechCount++
+                }
+                if (tech.isDeterminism) totalChoices = 1
+                totalChoices = Math.min(options.length, totalChoices)
+
                 if (optionLengthNoDuplicates < totalChoices + 1) { //if not enough options for all the choices
                     totalChoices = optionLengthNoDuplicates
                     if (tech.isBanish) { //when you run out of options eject banish
@@ -1145,8 +1239,20 @@ const powerUps = {
                     if (!alreadyHasGun) text += powerUps.gunText(choose, `powerUps.choose('gun',${choose})`)
                 }
                 for (let i = 0; i < localSettings.entanglement.techIndexes.length; i++) { //add tech
-                    let choose = localSettings.entanglement.techIndexes[i]
-                    if (tech.tech[choose]) {
+
+                    let found = false;
+                    let choose = undefined
+                    console.log(localSettings.entanglement.techIndexes[i])
+                    for (let j = 0; j < tech.tech.length; j++) {
+                        if (localSettings.entanglement.techIndexes[i] === tech.tech[j].name) {
+                            choose = j;
+                            found = true;
+                            break;
+                        }
+                    }
+                    // let choose = localSettings.entanglement.techIndexes[i]
+                    console.log(choose)
+                    if (found && tech.tech[choose]) {
                         const isCount = tech.tech[choose].count > 0 ? `(${tech.tech[choose].count + 1}x)` : "";
                         if (choose === null || tech.tech[choose].count + 1 > tech.tech[choose].maxCount || !tech.tech[choose].allowed()) {
                             // text += `<div class="choose-grid-module" style = "background-color: #efeff5; border: 0px; opacity:0.5; font-size: 60%; line-height: 130%; margin: 1px; padding-top: 6px; padding-bottom: 6px;"><div class="grid-title">${tech.tech[choose].name} <span style = "color: #aaa;font-weight: normal;font-size:80%;">- incoherent</span></div></div>`
@@ -1177,14 +1283,14 @@ const powerUps = {
             }
         },
     },
-    spawnDelay(type, count) {
-        count *= 2
+    spawnDelay(type, count, delay = 2) {
+        count *= delay
         let cycle = () => {
             if (count > 0) {
                 if (m.alive) requestAnimationFrame(cycle);
                 if (!simulation.paused && !simulation.isChoosing) {
                     count--
-                    if (!(count % 2)) {
+                    if (!(count % delay)) {
                         const where = { x: m.pos.x + 50 * (Math.random() - 0.5), y: m.pos.y + 50 * (Math.random() - 0.5) }
                         powerUps.spawn(where.x, where.y, type);
                     }
@@ -1204,18 +1310,6 @@ const powerUps = {
                 b.mine(who.position, { x: 0, y: 0 }, 0)
             }
         }
-        if (tech.isRelay) {
-            if (tech.isFlipFlopOn) {
-                tech.isFlipFlopOn = false
-                if (document.getElementById("tech-switch")) document.getElementById("tech-switch").innerHTML = ` = <strong>OFF</strong>`
-                m.eyeFillColor = 'transparent'
-            } else {
-                tech.isFlipFlopOn = true //immune to damage this hit, lose immunity for next hit
-                if (document.getElementById("tech-switch")) document.getElementById("tech-switch").innerHTML = ` = <strong>ON</strong>`
-                m.eyeFillColor = m.fieldMeterColor //'#0cf'
-            }
-            if (tech.isRelayEnergy) m.setMaxEnergy();
-        }
     },
     spawnRandomPowerUp(x, y) { //mostly used after mob dies,  doesn't always return a power up
         if (!tech.isEnergyHealth && (Math.random() * Math.random() - 0.3 > Math.sqrt(m.health)) || Math.random() < 0.04) { //spawn heal chance is higher at low health
@@ -1230,11 +1324,11 @@ const powerUps = {
             powerUps.spawn(x, y, "gun");
             return;
         }
-        if (Math.random() < 0.005 * (10 - level.levelsCleared)) { //a new tech has a low chance that decreases in later levels
-            powerUps.spawn(x, y, "tech");
-            return;
-        }
-        if (Math.random() < 0.0015) {
+        // if (Math.random() < 0.005 * (10 - level.levelsCleared)) { //a new tech has a low chance that decreases in later levels
+        //     powerUps.spawn(x, y, "tech");
+        //     return;
+        // }
+        if (Math.random() < 0.0016) {
             powerUps.spawn(x, y, "field");
             return;
         }
@@ -1383,8 +1477,10 @@ const powerUps = {
             //     tech.removeTech(index)
             // } else {
             // }
+            tech.tech[index].frequency = 0 //banish tech
             powerUps.ejectTech(index)
-            m.damage(0.04)
+            if (m.immuneCycle < m.cycle) m.damage(tech.pauseEjectTech * 0.01)
+            tech.pauseEjectTech *= 1.2
             document.getElementById(`${index}-pause-tech`).style.textDecoration = "line-through"
             document.getElementById(`${index}-pause-tech`).style.animation = ""
             document.getElementById(`${index}-pause-tech`).onclick = null
@@ -1412,13 +1508,9 @@ const powerUps = {
                 smallIndexes.push(i)
             }
         }
-        if (bigIndexes.length > 0) {
-            const index = bigIndexes[Math.floor(Math.random() * bigIndexes.length)]
-            for (let i = 0; i < 3; i++) powerUps.directSpawn(where.x, where.y, options[Math.floor(Math.random() * options.length)], false)
 
-            Matter.Composite.remove(engine.world, powerUp[index]);
-            powerUp.splice(index, 1);
-        } else if (smallIndexes.length > 2 && Math.random() < 0.33) {
+
+        if (smallIndexes.length > 2 && Math.random() < 0.66) {             // console.log("no big, at least 3 small can combine")
             for (let j = 0; j < 3; j++) {
                 for (let i = 0; i < powerUp.length; i++) {
                     if (powerUp[i].name === "heal" || powerUp[i].name === "research" || powerUp[i].name === "ammo" || powerUp[i].name === "coupling" || powerUp[i].name === "boost") {
@@ -1431,7 +1523,13 @@ const powerUps = {
 
             options = ["tech", "gun", "field"]
             powerUps.directSpawn(where.x, where.y, options[Math.floor(Math.random() * options.length)], false)
-        } else if (smallIndexes.length > 0) {
+        } else if (bigIndexes.length > 0 && Math.random() < 0.5) { // console.log("at least 1 big can spilt")
+            const index = bigIndexes[Math.floor(Math.random() * bigIndexes.length)]
+            for (let i = 0; i < 3; i++) powerUps.directSpawn(where.x, where.y, options[Math.floor(Math.random() * options.length)], false)
+
+            Matter.Composite.remove(engine.world, powerUp[index]);
+            powerUp.splice(index, 1);
+        } else if (smallIndexes.length > 0) { // console.log("no big, at least 1 small will swap flavors")
             const index = Math.floor(Math.random() * powerUp.length)
             options = options.filter(e => e !== powerUp[index].name); //don't repeat the current power up type
             powerUps.directSpawn(where.x, where.y, options[Math.floor(Math.random() * options.length)], false)
@@ -1453,7 +1551,9 @@ const powerUps = {
             color: powerUps[target].color,
             effect: powerUps[target].effect,
             name: powerUps[target].name,
-            size: size
+            size: size,
+            internalCount: 1,
+            cram: 0
         }
         let polygonSides
         if (isDuplicated) {
@@ -1461,23 +1561,29 @@ const powerUps = {
             properties.isDuplicated = true
         } else {
             properties.inertia = Infinity //prevents rotation for circles only
-            polygonSides = 0
+            polygonSides = 8
         }
         powerUp[index] = Matter.Bodies.polygon(x, y, polygonSides, size, properties);
         if (mode) powerUp[index].mode = mode
         if (moving) Matter.Body.setVelocity(powerUp[index], { x: (Math.random() - 0.5) * 15, y: Math.random() * -9 - 3 });
         Composite.add(engine.world, powerUp[index]);
+        powerUps.trueCount++
     },
     spawn(x, y, target, moving = true, mode = null, size = powerUps[target].size()) {
         if (
             (!tech.isSuperDeterminism || (target !== 'research')) &&
             !(tech.isEnergyNoAmmo && target === 'ammo')
         ) {
-            if (tech.isBoostReplaceAmmo && target === 'ammo') target = 'boost'
+            if (tech.isBoostReplaceAmmo && target === 'ammo') {
+                target = 'boost'
+                size = powerUps[target].size()
+            }
             powerUps.directSpawn(x, y, target, moving, mode, size)
             if (Math.random() < tech.duplicationChance()) {
                 powerUps.directSpawn(x, y, target, moving, mode, size, true)
                 powerUp[powerUp.length - 1].isDuplicated = true
+                // if (tech.isPowerUpsVanish) powerUp[powerUp.length - 1].endCycle = simulation.cycle + 300
+                if (tech.isDupEnergy) m.energy *= 2
             }
         }
     },

@@ -144,7 +144,7 @@ const simulation = {
     fpsCapDefault: 72, //use to change fpsCap back to normal after a hit from a mob
     isCommunityMaps: false,
     cyclePaused: 0,
-    fallHeight: 6000, //below this y position the player dies
+    fallHeight: 6000, //below this y position the player will teleport to start, take damage, or teleport to the sky based on the value of  level.fallMode
     lastTimeStamp: 0, //tracks time stamps for measuring delta
     delta: 1000 / 60, //speed of game engine //looks like it has to be 16.6666 to match player input
     buttonCD: 0,
@@ -321,10 +321,10 @@ const simulation = {
             } else if (tech.tech[i].count > 0 && !tech.tech[i].isInstant) {
                 if (text) text += "<br>" //add a new line, but not on the first line
                 text += tech.tech[i].name
-                if (tech.tech[i].nameInfo) {
-                    text += tech.tech[i].nameInfo
-                    tech.tech[i].addNameInfo();
-                }
+                // if (tech.tech[i].nameInfo) {
+                //     text += tech.tech[i].nameInfo
+                //     tech.tech[i].addNameInfo();
+                // }
                 if (tech.tech[i].count > 1) text += ` (${tech.tech[i].count}x)`
             }
         }
@@ -746,22 +746,8 @@ const simulation = {
                         m.energy = m.maxEnergy + (m.energy - m.maxEnergy) * tech.overfillDrain //every second energy above max energy loses 25%
                         if (m.energy > 1000000) m.energy = 1000000
                     }
-                    if (tech.isFlipFlopEnergy && m.immuneCycle < m.cycle) {
-                        if (tech.isFlipFlopOn) {
-                            if (m.immuneCycle < m.cycle) m.energy += 0.2;
-                        } else {
-                            m.energy -= 0.01;
-                            if (m.energy < 0) m.energy = 0
-                        }
-                    }
-                    if (tech.relayIce && tech.isFlipFlopOn) {
-                        for (let j = 0; j < tech.relayIce; j++) {
-                            for (let i = 0, len = 3 + Math.ceil(9 * Math.random()); i < len; i++) b.iceIX(2)
-                        }
-                    }
-
                     if (m.pos.y > simulation.fallHeight) { // if 4000px deep
-                        if (level.isEndlessFall) {
+                        if (level.fallMode === "start") {
                             //infinite falling.  teleport to sky after falling
 
                             simulation.ephemera.push({
@@ -770,7 +756,6 @@ const simulation = {
                                 do() {
                                     this.count--
                                     if (this.count < 0 || m.onGround) simulation.removeEphemera(this.name)
-                                    // console.log(player.velocity.y)
                                     if (player.velocity.y > 70) Matter.Body.setVelocity(player, { x: player.velocity.x * 0.99, y: player.velocity.y * 0.99 });
                                     if (player.velocity.y > 90) Matter.Body.setVelocity(player, { x: player.velocity.x * 0.99, y: player.velocity.y * 0.99 });
                                 },
@@ -789,13 +774,36 @@ const simulation = {
                             m.angle = Math.atan2(simulation.mouseInGame.y - m.pos.y, simulation.mouseInGame.x - m.pos.x);
                             // move bots
                             for (let i = 0; i < bullet.length; i++) {
-                                if (bullet[i].botType) {
-                                    Matter.Body.setPosition(bullet[i], Vector.sub(bullet[i].position, change));
-                                    // Matter.Body.setPosition(bullet[i], Vector.add(player.position, { x: 250 * (Math.random() - 0.5), y: 250 * (Math.random() - 0.5) }));
-                                    // Matter.Body.setVelocity(bullet[i], { x: 0, y: 0 });
-                                }
+                                if (bullet[i].botType) Matter.Body.setPosition(bullet[i], Vector.sub(bullet[i].position, change));
                             }
-                        } else {
+                        } else if (level.fallMode === "position") { //fall and stay in the same horizontal position
+                            simulation.ephemera.push({
+                                name: "slow player",
+                                count: 180, //cycles before it self removes
+                                do() {
+                                    this.count--
+                                    if (this.count < 0 || m.onGround) simulation.removeEphemera(this.name)
+                                    if (player.velocity.y > 70) Matter.Body.setVelocity(player, { x: player.velocity.x * 0.99, y: player.velocity.y * 0.99 });
+                                    if (player.velocity.y > 90) Matter.Body.setVelocity(player, { x: player.velocity.x * 0.99, y: player.velocity.y * 0.99 });
+                                },
+                            })
+                            const before = { x: player.position.x, y: player.position.y, }
+                            let posXClamped = Math.min(Math.max(level.fallModeBounds.left, player.position.x), level.fallModeBounds.right)
+                            Matter.Body.setPosition(player, { x: posXClamped, y: level.enter.y - 4000 });
+
+                            // translate camera smoothly to preserve illusion to endless fall
+                            const change = { x: before.x - posXClamped, y: before.y - player.position.y }
+                            m.transX += change.x
+                            m.transY += change.y
+                            simulation.mouseInGame.x = (simulation.mouse.x - canvas.width2) / simulation.zoom * simulation.edgeZoomOutSmooth + canvas.width2 - m.transX;
+                            simulation.mouseInGame.y = (simulation.mouse.y - canvas.height2) / simulation.zoom * simulation.edgeZoomOutSmooth + canvas.height2 - m.transY;
+                            m.angle = Math.atan2(simulation.mouseInGame.y - m.pos.y, simulation.mouseInGame.x - m.pos.x);
+
+                            // move bots
+                            for (let i = 0; i < bullet.length; i++) {
+                                if (bullet[i].botType) Matter.Body.setPosition(bullet[i], Vector.sub(bullet[i].position, change));
+                            }
+                        } else { //get hurt and go to start
                             Matter.Body.setVelocity(player, { x: 0, y: 0 });
                             Matter.Body.setPosition(player, { x: level.enter.x + 50, y: level.enter.y - 20 });
                             // m.damage(0.02 * simulation.difficultyMode);
@@ -857,7 +865,7 @@ const simulation = {
                                 do() {
                                     if (Matter.Query.point(map, m.pos).length > 0 || Matter.Query.point(map, player.position).length > 0) {
                                         this.count--
-                                        // console.log('halp, stuck in map!', Matter.Query.point(map, m.pos))
+
                                         if (this.count < 0) {
                                             simulation.removeEphemera(this.name)
                                             Matter.Body.setVelocity(player, { x: 0, y: 0 });
@@ -880,22 +888,34 @@ const simulation = {
 
                         }
                         if (tech.cyclicImmunity && m.immuneCycle < m.cycle + tech.cyclicImmunity) m.immuneCycle = m.cycle + tech.cyclicImmunity; //player is immune to damage for 60 cycles
-
-                        fallCheck = function (who, save = false) {
+                        /** Out of bound bodies check
+                         * @param {[]} who
+                         * @param {bool} save
+                         */
+                        function fallCheck (who, save = false) {
                             let i = who.length;
-                            while (i--) {
-                                if (who[i].position.y > simulation.fallHeight) {
-                                    if (save) {
-                                        Matter.Body.setVelocity(who[i], { x: 0, y: 0 });
-                                        Matter.Body.setPosition(who[i], {
-                                            x: level.exit.x + 30 * (Math.random() - 0.5),
-                                            y: level.exit.y + 30 * (Math.random() - 0.5)
-                                        });
-                                    } else {
-                                        Matter.Composite.remove(engine.world, who[i]);
-                                        who.splice(i, 1);
-                                    }
+                            if(save) {
+                            // grid spirally thingy https://stackoverflow.com/a/76847676
+                            let v     = [0, 0]
+                            let r     = 1
+                            let axis  = 0
+                            let delta = 1
+                            while (i--) if (who[i].position.y > simulation.fallHeight) {
+                                v[axis] += delta
+                                if (Math.abs(v[axis]) == r) {
+                                    axis = axis ? 0 : 1
+                                    if (axis) delta = delta < 0 ? 1 : -1;
+                                    else if (0 < delta) r++
                                 }
+                                Matter.Body.setVelocity(who[i], { x: 0, y: 0 });
+                                Matter.Body.setPosition(who[i], {
+                                    x: level.exit.x + 30 * v[0],
+                                    y: level.exit.y + 30 * v[1]
+                                });
+                            }}
+                            else while (i--) if (who[i].position.y > simulation.fallHeight) {
+                                Matter.Composite.remove(engine.world, who[i]);
+                                who.splice(i, 1);
                             }
                         };
                         fallCheck(body);
@@ -924,7 +944,7 @@ const simulation = {
     clearNow: false,
     clearMap() {
         level.isProcedural = false;
-        level.isEndlessFall = false;
+        level.fallMode = "";
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         if (m.alive) {
             if (tech.isLongitudinal) b.guns[3].waves = []; //empty array of wave bullets
@@ -1140,6 +1160,34 @@ const simulation = {
         simulation.fpsCap = simulation.fpsCapDefault
         simulation.fpsInterval = 1000 / simulation.fpsCap;
     },
+    // getCoords: {
+    //   //used when building maps, outputs a draw rect command to console, only works in testing mode
+    //   pos1: {
+    //     x: 0,
+    //     y: 0
+    //   },
+    //   pos2: {
+    //     x: 0,
+    //     y: 0
+    //   },
+    //   out() {
+    //     if (keys[49]) {
+    //       simulation.getCoords.pos1.x = Math.round(simulation.mouseInGame.x / 25) * 25;
+    //       simulation.getCoords.pos1.y = Math.round(simulation.mouseInGame.y / 25) * 25;
+    //     }
+    //     if (keys[50]) {
+    //       //press 1 in the top left; press 2 in the bottom right;copy command from console
+    //       simulation.getCoords.pos2.x = Math.round(simulation.mouseInGame.x / 25) * 25;
+    //       simulation.getCoords.pos2.y = Math.round(simulation.mouseInGame.y / 25) * 25;
+    //       window.getSelection().removeAllRanges();
+    //       var range = document.createRange();
+    //       range.selectNode(document.getElementById("test"));
+    //       window.getSelection().addRange(range);
+    //       document.execCommand("copy");
+    //       window.getSelection().removeAllRanges();
+    //     }
+    //   }
+    // },
     testingOutput() {
         ctx.fillStyle = "#000";
         ctx.textAlign = "center";
@@ -1299,7 +1347,6 @@ const simulation = {
                     const distance = Math.sqrt((vertex.x - pos.x) ** 2 + (vertex.y - pos.y) ** 2)
                     const angle = Math.atan2(vertex.y - pos.y, vertex.x - pos.x);
                     const queryPoint = { x: Math.cos(angle + Math.PI) + vertex.x, y: Math.sin(angle + Math.PI) + vertex.y }
-
                     if (Math.abs(distance - radius) < 1 && Matter.Query.ray(map, pos, queryPoint).length == 0) circleCollisions.push(vertex)
                 }
             }
@@ -1620,8 +1667,8 @@ const simulation = {
         });
 
         //undo last element added after you press z
-        document.body.addEventListener("keydown", (e) => { 
-            if (simulation.testing && e.keyCode === 90 && simulation.constructMapString.length) {
+        document.body.addEventListener("keydown", (event) => { // e.keyCode   z=90  m=77 b=66  shift = 16  c = 67
+            if (simulation.testing && event.code === "KeyZ" && simulation.constructMapString.length) {
                 if (simulation.constructMapString[simulation.constructMapString.length - 1][6] === 'm') { //remove map from current level
                     const index = map.length - 1
                     Matter.Composite.remove(engine.world, map[index]);
