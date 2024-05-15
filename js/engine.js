@@ -17,6 +17,7 @@ const Engine = Matter.Engine,
 const engine = Engine.create();
 engine.world.gravity.scale = 0; //turn off gravity (it's added back in later)
 // matter events
+/** @param {Matter.IEventCollision<Matter.Engine>} event */
 function playerOnGroundCheck(event) {
     //runs on collisions events
     function enter() {
@@ -50,8 +51,10 @@ function playerOnGroundCheck(event) {
     }
 
     const pairs = event.pairs;
-    for (let i = 0, j = pairs.length; i != j; ++i) {
-        let pair = pairs[i];
+    let jumpSensorIndex = pairs.findIndex(e => e.bodyA == jumpSensor || e.bodyB == jumpSensor)
+    if(jumpSensorIndex != -1)
+    {
+        let pair = pairs[jumpSensorIndex];
         if (pair.bodyA === jumpSensor) {
             m.standingOn = pair.bodyB; //keeping track to correctly provide recoil on jump
             if (m.standingOn.alive !== true) enter();
@@ -62,50 +65,40 @@ function playerOnGroundCheck(event) {
     }
     m.numTouching = 0;
 }
-
+/** @param {Matter.IEventCollision<Matter.Engine>} event */
 function playerOffGroundCheck(event) {
     //runs on collisions events
     const pairs = event.pairs;
-    for (let i = 0, j = pairs.length; i != j; ++i) {
-        if (pairs[i].bodyA === jumpSensor || pairs[i].bodyB === jumpSensor) {
-            if (m.onGround && m.numTouching === 0) {
-                m.onGround = false;
-                m.lastOnGroundCycle = m.cycle;
-                m.hardLandCD = 0 // disable hard landing
-                if (m.checkHeadClear()) {
-                    if (m.crouch) {
-                        m.undoCrouch();
-                    }
-                    m.yOffGoal = m.yOffWhen.jump;
-                }
-            }
+    let jumpSensorIndex = pairs.findIndex(e => e.bodyA == jumpSensor || e.bodyB == jumpSensor)
+    if(jumpSensorIndex == -1) return;  
+    if (m.onGround && m.numTouching === 0) {
+        m.onGround = false;
+        m.lastOnGroundCycle = m.cycle;
+        m.hardLandCD = 0 // disable hard landing
+        if (m.checkHeadClear()) {
+            if (m.crouch) m.undoCrouch();
+            m.yOffGoal = m.yOffWhen.jump;
         }
     }
 }
-
+/** @param {Matter.IEventCollision<Matter.Engine>} event */
 function collisionChecks(event) {
     const pairs = event.pairs;
     for (let i = 0, j = pairs.length; i != j; i++) {
         //mob + (player,bullet,body) collisions
         let pair = pairs[i]
         let k = mob.indexOf(pair.bodyA)
-        let collidingMob
-        if(k != -1 && mob[k].alive) {
-            collidingMob = mob[k]
-            collideMob(pair.bodyB);
-            break;
-        }
-        k = mob.indexOf(pair.bodyB)
-        if(k != -1 && mob[k].alive) {
-            collidingMob = mob[k]
+        let collidingMob = mob[k]
+        if(k != -1 && collidingMob.alive)
+            collideMob(pair.bodyB)
+        else if((k = mob.indexOf(pair.bodyB)) != -1 && (collidingMob = mob[k]).alive)
             collideMob(pair.bodyA);
-            break;
-        }
+        break;
         function collideMob(obj) {
         //player + mob collision
             if (
+                (obj === playerBody || obj === playerHead) && 
                 m.immuneCycle < m.cycle &&
-                (obj === playerBody || obj === playerHead) &&
                 !collidingMob.isSlowed && !collidingMob.isStunned
             ) {
                 let dmg = Math.min(Math.max(0.025 * Math.sqrt(collidingMob.mass), 0.05), 0.3) * simulation.dmgScale; //player damage is capped at 0.3*dmgScale of 1.0
@@ -131,13 +124,12 @@ function collisionChecks(event) {
                         { x: null, y: null, radius: 14, color: "#00abee99", time: 24},
                         { x: null, y: null, radius: 10, color: "#00abeeb3", time: 32}]
                     }
-                    let copyTemplate = () => { return {...couplingLossDrawTemplate}};
                     const unit = Vector.rotate({ x: 1, y: 0 }, 6.28 * Math.random())
-                    let addAnim = simulation.drawList.push
-                    addAnim({...cache.couplingNoHitDraw, ...Vector.add(m.pos, Vector.mult(unit, 17))});
-                    addAnim({...cache.couplingNoHitDraw, ...Vector.add(m.pos, Vector.mult(unit, 60))});
-                    addAnim({...cache.couplingNoHitDraw, ...Vector.add(m.pos, Vector.mult(unit, 100))});
-                    addAnim({...cache.couplingNoHitDraw, ...Vector.add(m.pos, Vector.mult(unit, 135))});
+                    let drawList = simulation.drawList;
+                    drawList.push({...cache.couplingNoHitDraw[0], ...Vector.add(m.pos, Vector.mult(unit, 17))});
+                    drawList.push({...cache.couplingNoHitDraw[1], ...Vector.add(m.pos, Vector.mult(unit, 60))});
+                    drawList.push({...cache.couplingNoHitDraw[2], ...Vector.add(m.pos, Vector.mult(unit, 100))});
+                    drawList.push({...cache.couplingNoHitDraw[3], ...Vector.add(m.pos, Vector.mult(unit, 135))});
                 }
                 if (tech.isHarpoonDefense) { //fire harpoons at mobs after getting hit
                     const maxCount = 10 + 3 * tech.extraHarpoons //scale the number of hooks fired
@@ -184,8 +176,6 @@ function collisionChecks(event) {
                         time: simulation.drawTime
                     });
                 }
-                // return;
-                // }
             } else {
                 //mob + bullet collisions
                 if (obj.classType === "bullet" && obj.speed > obj.minDmgSpeed) {
@@ -261,7 +251,7 @@ function collisionChecks(event) {
         }
     }
 }
-
+/** @param {Matter.IEventCollision<Matter.Engine>} event */
 function powerUpMerge(event)
 {
     const pairs = event.pairs;

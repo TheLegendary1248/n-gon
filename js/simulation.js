@@ -378,11 +378,7 @@ const simulation = {
         simulation.updateGunHUD();
         simulation.boldActiveGunHUD();
         //set crosshairs
-        if (b.activeGun === 1) {
-            simulation.drawCursor = simulation.drawCursorCoolDown
-        } else {
-            simulation.drawCursor = simulation.drawCursorBasic
-        }
+        simulation.drawCursor = b.activeGun === 1 ? simulation.drawCursorCoolDown : simulation.drawCursorBasic
     },
     zoom: null,
     zoomScale: 1000,

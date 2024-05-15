@@ -251,16 +251,6 @@ const level = {
             document.title = `n-gon: ${level.levelsCleared} ${level.levels[level.onLevel]} (${difficulty})`
             simulation.makeTextLog(`<span class='color-var'>level</span>.onLevel <span class='color-symbol'>=</span> "<span class='color-text'>${level.levels[level.onLevel]}</span>"`);
         }
-        // simulation.makeTextLog(`
-        // input.key.up = ["<span class='color-text'>${input.key.up}</span>", "<span class='color-text'>ArrowUp</span>"]
-        // <br>input.key.left = ["<span class='color-text'>${input.key.left}</span>", "<span class='color-text'>ArrowLeft</span>"]
-        // <br>input.key.down = ["<span class='color-text'>${input.key.down}</span>", "<span class='color-text'>ArrowDown</span>"]
-        // <br>input.key.right = ["<span class='color-text'>${input.key.right}</span>", "<span class='color-text'>ArrowRight</span>"]
-        // <br>
-        // <br><span class='color-var'>m</span>.fieldMode = "<span class='color-text'>${m.fieldUpgrades[m.fieldMode].name}</span>"
-        // <br>input.key.field = ["<span class='color-text'>${input.key.field}</span>", "<span class='color-text'>right mouse</span>"]
-        // <br><span class='color-var'>m</span>.field.description = "<span class='color-text'>${m.fieldUpgrades[m.fieldMode].description}</span>"
-        // `, 1200);
     },
     announceMobTypes() {
         simulation.makeTextLog(`spawn<span class='color-symbol'>.</span>${spawn.pickList[0]}<span class='color-symbol'>(</span>x<span class='color-symbol'>,</span>y<span class='color-symbol'>)</span>`)
@@ -271,15 +261,10 @@ const level = {
         if (!level.disableExit) {
             level.levelsCleared++;
             level.onLevel++; //cycles map to next level
-
             if (simulation.isTraining) {
                 if (level.onLevel > level.levels.length - 1) { //if all training levels are completed
                     level.disableExit = true
-                    document.getElementById("health").style.display = "none"
-                    document.getElementById("health-bg").style.display = "none"
-                    document.getElementById("defense-bar").style.display = "none"
-                    document.getElementById("damage-bar").style.display = "none"
-                    document.getElementById("text-log").style.display = "none"
+                    ["health","health-bg","defense-bar","damage-bar","text-log"].forEach(id => document.getElementById(id).style.display = "none")
                     document.getElementById("fade-out").style.opacity = 1; //slowly fades out
                     setTimeout(function () {
                         simulation.paused = true;
@@ -333,12 +318,12 @@ const level = {
                     }
                 }
                 text += `</div> </div></div>`
-
-                document.getElementById("choose-grid").innerHTML = text
+                let chooseGridElem = document.getElementById("choose-grid")
                 //show level info
-                document.getElementById("choose-grid").style.opacity = "1"
-                document.getElementById("choose-grid").style.transitionDuration = "0.25s"; //how long is the fade in on
-                document.getElementById("choose-grid").style.visibility = "visible"
+                chooseGridElem.innerHTML = text
+                chooseGridElem.style.opacity = "1"
+                chooseGridElem.style.transitionDuration = "0.25s"; //how long is the fade in on
+                chooseGridElem.style.visibility = "visible"
 
                 simulation.draw.cons();
                 simulation.draw.body();
