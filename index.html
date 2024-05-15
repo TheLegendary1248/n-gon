@@ -387,11 +387,10 @@
         <div class="pause-grid-module" style="padding: 10px; line-height: 110%;">
             <span style="font-size: 0.87em;">
                 <span style="font-size:1.5em;font-weight: 600; float: left;">PAUSED</span>
-                <span style="float: right;" data-id="pause-prompt">press ${input.key.pause} to resume</span>
+                <span style="float: right;" data-id="pause-prompt">press <span data-sel="key-prompt"></span> to resume</span>
                 <br>
                 <br>
-                <button onclick="build.shareURL(false)" class='sort-button' style="font-size:1em;float: right;">copy build
-                    url</button>
+                <button onclick="build.shareURL(false)" class='sort-button' style="font-size:1em;float: right;">copy build url</button>
                 <input onclick="build.showImages('pause')" type="checkbox" id="hide-images-pause" name="hide-images-pause">
                 <label for="hide-images-pause" title="hide images for fields, guns, and tech" style="font-size:1.15em;">hide
                     images</label>
@@ -401,16 +400,16 @@
                     HUD</label>
                 <br>
                 <br>
-                <strong class='color-d'>damage</strong>: ${((tech.damageFromTech())).toPrecision(4)}x 
+                <strong data-sel="damage" class='color-d'>damage</strong>: ${((tech.damageFromTech())).toPrecision(4)}x 
                 <span style="float: right;">
-                    <strong class='color-d'>difficulty:</strong>${((m.dmgScale)).toPrecision(4)}x
+                    <strong data-sel="difficulty" class='color-d'>difficulty:</strong>${((m.dmgScale)).toPrecision(4)}x
                 </span>
                 <br>
-                <strong class='color-defense'>damage taken</strong>: ${(m.defense()).toPrecision(4)}x 
+                <strong data-sel="defense" class='color-defense'>damage taken</strong>: ${(m.defense()).toPrecision(4)}x 
                 <span style="float: right;">
                     <strong class='color-defense'>difficulty:</strong>${(simulation.dmgScale).toPrecision(4)}x
                 </span>
-                <br><strong data-id="fire-rate"><em>fire rate</em></strong>
+                <br><strong data-sel="fire-rate"><em>fire rate</em></strong>
                 <br>
                 <br><strong class='color-h'>health</strong>: (${(m.health * 100).toFixed(0)} / ${(m.maxHealth *
                 100).toFixed(0)})

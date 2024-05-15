@@ -5,8 +5,12 @@ let id = 0
 for( const [k, v] in props){
   let holdkey = k
   spawn[k] = function k () {o[holdkey](...args);//i forgot atm how spread works here
-mob[mob.length - 1].mobType = id++
+mob[mob.length - 1].mobType = id++}
 }
+let cache = {}
+//Mention original if not on the intended host and is not a local file
+if(window.location.host != "landgreen.github.io" && (window.location.href.startsWith("http://") || window.location.href.startsWith("https://"))){
+    if(confirm("This version of the game was detected to be a fork of original\nClicking OK will open a link to the original game by Landgreen")) window.open("https://landgreen.github.io/n-gon/") 
 }
 "use strict";
 //TODO cache often accessed dom elements. Like, seriously man? Does typing document.getElementById that many times not deter you?
@@ -375,17 +379,24 @@ const build = {
         //show in game console
         simulation.lastLogTime = m.cycle //hide in game console
     },
-    generatePauseLeft() { //BORN We can just create this once and remove it. display:none might even have the same effect 
+    generatePauseLeft() {
         let node = document.createElement('br')
         //left side
+        //Generate display for counts FINISH THIS
         let botText = ""
-        //Generate display for counts
         Object.entries(tech.botCounts).forEach(([key, value]) => {
+            ////document.createElement("br")
             if(value) botText += `<br>${key.split(/(?=[A-Z])/).slice(0,-1).map(e => e.toLocaleLowerCase()).join('-')}s: ${value}`
         });
         //FIX no
         /** @type {HTMLTemplateElement} */
+        
         let template = document.getElementById('t-pause-grid')
+        template.querySelector('[data-sel="key-prompt]').textContent = input.key.pause.toString()
+        template.querySelector('[data-sel="damage"]').nextSibling.textContent = tech.damageFromTech().toPrecision(4) + "x"
+        template.querySelector('[data-sel="difficulty"]').nextSibling.textContent = m.dmgScale.toPrecision(4) + "x"
+        template.querySelector('[data-sel="defense"]').nextSibling.textContent = m.defense().toPrecision(4) + "x"
+        template.querySelector('[data-sel="fire-rate"]').nextSibling.textContent = ": " + (1 / b.fireCDscale).toFixed(2) + "x"
         /** @type {DocumentFragment} */
         let clone  = template.content.cloneNode(true)
         if(localSettings.isHideImages) clone.getElementById('hide-images-pause').setAttribute("checked")
@@ -403,9 +414,6 @@ const build = {
                 floatSpan.cloneNode(false)
             }
         }
-        [
-            {damage}
-        ]
         document.createTextNode('')
         if(tech.duplicationChance()) {
             //let str = `<br><strong class='color-dup'>duplication</strong>:${(tech.duplicationChance() * 100).toFixed(0)}%`
@@ -746,9 +754,10 @@ const build = {
                     document.getElementById("gun-" + b.inventory[i]).classList.remove("build-gun-selected");
                     //remove gun
                     b.inventory.splice(i, 1)
-                    b.guns[index].count = 0;
-                    b.guns[index].have = false;
-                    if (b.guns[index].ammo != Infinity) b.guns[index].ammo = 0;
+                    let gun = b.guns[index]
+                    gun.count = 0;
+                    gun.have = false;
+                    if (gun.ammo != Infinity) gun.ammo = 0;
                     if (b.inventory.length === 0) {
                         b.activeGun = null;
                         b.inventoryGun = 0;
@@ -829,6 +838,7 @@ const build = {
                     }
                     if (tech.tech[i].count > 0) tech.removeTech(i)
                     if (techID.classList.contains("build-tech-selected")) techID.classList.remove("build-tech-selected");
+                    //FIX
                     if (tech.tech[i].isFieldTech) {
                         techID.innerHTML = build.fieldTechText(i)
                     } else if (tech.tech[i].isGunTech) {
@@ -972,14 +982,15 @@ const build = {
     nameLink(text) { //converts text into a clickable wikipedia search
         return `<a target="_blank" href='https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(text).replace(/'/g, '%27')}&title=Special:Search' class="link">${text}</a>`
     },
-    reset() {
-        build.isExperimentSelection = true;
+    reset() {//FIX wait, what? Check startGame()
+        build.isExperimentSelection = 
         build.isExperimentRun = true;
         simulation.startGame(true); //starts game, but pauses it
-        build.isExperimentSelection = true;
-        build.isExperimentRun = true;
+        build.isExperimentSelection = 
+        build.isExperimentRun =
         simulation.paused = true;
         b.inventory = []; //removes guns and ammo  
+        //FIX give b.guns a type, then use array forEach here
         for (let i = 0, len = b.guns.length; i < len; ++i) {
             b.guns[i].count = 0;
             b.guns[i].have = false;
