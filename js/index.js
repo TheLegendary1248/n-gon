@@ -388,97 +388,39 @@ const build = {
             ////document.createElement("br")
             if(value) botText += `<br>${key.split(/(?=[A-Z])/).slice(0,-1).map(e => e.toLocaleLowerCase()).join('-')}s: ${value}`
         });
-        //FIX no
-        /** @type {HTMLTemplateElement} */
-        
-        let template = document.getElementById('t-pause-grid')
-        template.querySelector('[data-sel="key-prompt]').textContent = input.key.pause.toString()
-        template.querySelector('[data-sel="damage"]').nextSibling.textContent = tech.damageFromTech().toPrecision(4) + "x"
-        template.querySelector('[data-sel="difficulty"]').nextSibling.textContent = m.dmgScale.toPrecision(4) + "x"
-        template.querySelector('[data-sel="defense"]').nextSibling.textContent = m.defense().toPrecision(4) + "x"
-        template.querySelector('[data-sel="fire-rate"]').nextSibling.textContent = ": " + (1 / b.fireCDscale).toFixed(2) + "x"
-        /** @type {DocumentFragment} */
-        let clone  = template.content.cloneNode(true)
-        if(localSettings.isHideImages) clone.getElementById('hide-images-pause').setAttribute("checked")
-        if(localSettings.isHideHUD) clone.getElementById('hide-hud').setAttribute("checked")
-        let content = clone.children[0]
-        content.querySelector('[data-id="pause-prompt"]').textContent = `press ${input.key.pause} to resume`
-        let statsFrag = new DocumentFragment()
-        let spacing = () => statsFrag.append(document.createElement('br'))
-        let floatSpan = document.createElement("span")
-        floatSpan.style.float = 'right'
-        let statGenerator = (elemClassStr, labelStr, valStr, isElemFloat = false) => {
-            let labelElem = document.createElement('strong')
-            labelElem.textContent = labelStr
-            if(float) {
-                floatSpan.cloneNode(false)
-            }
-        }
-        document.createTextNode('')
-        if(tech.duplicationChance()) {
-            //let str = `<br><strong class='color-dup'>duplication</strong>:${(tech.duplicationChance() * 100).toFixed(0)}%`
-            document.createElement('br')
-            let e = document.createElement('strong')
-            e.classList.add('color-dup')
-            e.textContent = 'duplication'
-            e.insertAdjacentText(`${(tech.duplicationChance() * 100).toFixed(0)}%`)
-            //append dupe chance elements
-        }
-        let fireRateTag = content.querySelector('[data-id="fire-rate"]')
-        if(m.coupling) {
-            let str = `<br><span style = 'font-size:90%;'>` + m.couplingDescription(m.coupling) + `</span> from ${(m.coupling).toFixed(0)} ${powerUps.orb.coupling(1)}`
-        }
-        fireRateTag.insertAdjacentHTML(botText);
-        [   //Environment stats
-            `level: ${level.levelsCleared} ${level.levels[level.onLevel]} (${level.difficultyText()})`,
-            `mobs: ${spawn.pickList[0]}, ${spawn.pickList[0]}`,
-            `seed: ${Math.initialSeed} &nbsp; ${m.cycle} cycles`,
-            `mobs: ${mob.length} &nbsp; blocks: ${body.length} &nbsp; bullets: ${bullet.length} &nbsp; power ups:${powerUp.length}`
-        ].forEach(e => {spacing(); statsFrag.append(append.createTextNode(e))})
-        if(simulation.isCheating) {
-            spacing(); spacing();
-            let t = document.createElement('em')
-            t.textContent = 'lore disabled'
-            statsFrag.append(t)
-        }
-        let text = `<div class="pause-grid-module" style = "padding: 10px; line-height: 110%;">
-        <span style = "font-size: 0.87em;">
-        <span style="font-size:1.5em;font-weight: 600; float: left;">PAUSED</span> 
-        <span style="float: right;">press ${input.key.pause} to resume</span>
-        <br>
-        <br>
-        <button onclick="build.shareURL(false)" class='sort-button' style="font-size:1em;float: right;">copy build url</button>
-        
-        <input onclick="build.showImages('pause')" type="checkbox" id="hide-images-pause" name="hide-images-pause" ${localSettings.isHideImages ? "checked" : ""}>
-        <label for="hide-images-pause" title="hide images for fields, guns, and tech" style="font-size:1.15em;" >hide images</label>
-        <br>
-        <input onclick="build.hideHUD('settings')" type="checkbox" id="hide-hud" name="hide-hud" ${localSettings.isHideHUD ? "checked" : ""}>
-        <label for="hide-hud" title="hide: tech, damage taken, damage, in game console" style="font-size:1.15em;">minimal HUD</label>
-        <br>
-        
-        <br><strong class='color-d'>damage</strong>: ${((tech.damageFromTech())).toPrecision(4)}x <span style="float: right;"><strong class='color-d'>difficulty:</strong> ${((m.dmgScale)).toPrecision(4)}x</span>
-        <br><strong class='color-defense'>damage taken</strong>: ${(m.defense()).toPrecision(4)}x <span style="float: right;"><strong class='color-defense'>difficulty:</strong> ${(simulation.dmgScale).toPrecision(4)}x</span>
-        <br><strong><em>fire rate</em></strong>: ${(1 / b.fireCDscale).toFixed(2)}x
-        ${tech.duplicationChance() ? `<br><strong class='color-dup'>duplication</strong>: ${(tech.duplicationChance() * 100).toFixed(0)}%` : ""}
-        ${m.coupling ? `<br><span style = 'font-size:90%;'>` + m.couplingDescription(m.coupling) + `</span> from ${(m.coupling).toFixed(0)} ${powerUps.orb.coupling(1)}` : ""}
-        ${botText}
-        <br>
-        <br><strong class='color-h'>health</strong>: (${(m.health * 100).toFixed(0)} / ${(m.maxHealth * 100).toFixed(0)})
-        <span style="float: right;">mass: ${player.mass.toFixed(1)}</span>
-        <br><strong class='color-f'>energy</strong>: (${(m.energy * 100).toFixed(0)} / ${(m.maxEnergy * 100).toFixed(0)}) + (${(m.fieldRegen * 6000).toFixed(0)}/s)
-        <span style="float: right;">position: (${player.position.x.toFixed(1)}, ${player.position.y.toFixed(1)})</span> 
-        <br><strong class='color-g'>gun</strong>: ${b.activeGun === null || b.activeGun === undefined ? "undefined" : b.guns[b.activeGun].name} &nbsp; <strong class='color-g'>ammo</strong>: ${b.activeGun === null || b.activeGun === undefined ? "0" : b.guns[b.activeGun].ammo}
-        <span style="float: right;">mouse: (${simulation.mouseInGame.x.toFixed(1)}, ${simulation.mouseInGame.y.toFixed(1)})</span> 
-        <br><strong class='color-m'>tech</strong>: ${tech.totalCount}  &nbsp; <strong class='color-r'>research</strong>: ${powerUps.research.count}
-        <span style="float: right;">velocity: (${player.velocity.x.toFixed(3)}, ${player.velocity.y.toFixed(3)})</span> 
-        ${tech.junkChance ? `<br><strong class='color-junk'>JUNK</strong>: ${(100 * tech.junkChance).toFixed(1)}%  ` : ""}
-        <br>
-        <br>level: ${level.levelsCleared} ${level.levels[level.onLevel]} (${level.difficultyText()})
-        <br>mobs: ${spawn.pickList[0]},  ${spawn.pickList[0]}
-        <br>seed: ${Math.initialSeed} &nbsp; ${m.cycle} cycles
-        <br>mobs: ${mob.length} &nbsp; blocks: ${body.length} &nbsp; bullets: ${bullet.length} &nbsp; power ups: ${powerUp.length} 
-        ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
-        </span></div>`;
+        /** @type {HTMLDivElement} */
+        let pauseLeftElem = document.getElementById('pause-grid-left')
+        if(localSettings.isHideImages) pauseLeftElem.getElementById('hide-images-pause').setAttribute("checked")
+        if(localSettings.isHideHUD) pauseLeftElem.getElementById('hide-hud').setAttribute("checked")
+        //Upper stats section
+        pauseLeftElem.querySelector('[data-sel="pause-prompt"]').textContent = `press ${input.key.pause} to resume`
+        pauseLeftElem.querySelector('[data-sel="damage"]').nextSibling.textContent = `: ${tech.damageFromTech().toPrecision(4)}x`
+        pauseLeftElem.querySelector('[data-sel="difficulty"]').nextSibling.textContent = ` ${m.dmgScale.toPrecision(4)}x`
+        pauseLeftElem.querySelector('[data-sel="defense"]').nextSibling.textContent = `: ${m.defense().toPrecision(4)}x`
+        pauseLeftElem.querySelector('[data-sel="combat-difficulty"]').nextSibling.textContent = ` ${(simulation.dmgScale).toPrecision(4)}x`
+        //Middle stats section
+        pauseLeftElem.querySelector('[data-sel="fire-rate"]').nextSibling.textContent = ": " + (1 / b.fireCDscale).toFixed(2) + "x"
+        pauseLeftElem.querySelector('[data-sel="health"]').nextSibling.textContent = `: (${(m.health * 100).toFixed(0)} / ${(m.maxHealth *100).toFixed(0)})`
+        pauseLeftElem.querySelector('[data-sel="energy"]').nextSibling.textContent = `: (${(m.energy * 100).toFixed(0)} / ${(m.maxEnergy * 100).toFixed(0)}) + (${(m.fieldRegen * 6000).toFixed(0)}/s)`
+        pauseLeftElem.querySelector('[data-sel="gun"]').nextSibling.textContent = `: ${b.activeGun === null || b.activeGun === undefined ? "undefined" : b.guns[b.activeGun].name} `
+        pauseLeftElem.querySelector('[data-sel="mass"]').textContent = `mass: ${player.mass.toFixed(1)}`
+        pauseLeftElem.querySelector('[data-sel="ammo"]').nextSibling.textContent = `:  ${b.activeGun === null || b.activeGun === undefined ? "0" : b.guns[b.activeGun].ammo} \xa0 `
+        pauseLeftElem.querySelector('[data-sel="tech"]').nextSibling.textContent = `: ${tech.totalCount} \xa0 `
+        pauseLeftElem.querySelector('[data-sel="research"]').nextSibling.textContent = `: ${powerUps.research.count}`
+        pauseLeftElem.querySelector('[data-sel="mouse"]').textContent = `: (${(m.health * 100).toFixed(0)} / ${(m.maxHealth *100).toFixed(0)})`
+        pauseLeftElem.querySelector('[data-sel="position"]').nextSibling.textContent = `: (${(m.health * 100).toFixed(0)} / ${(m.maxHealth *100).toFixed(0)})`
+        pauseLeftElem.querySelector('[data-sel="velocity"]').nextSibling.textContent = `velocity: (${player.velocity.x.toFixed(3)}, ${player.velocity.y.toFixed(3)})`
+        //Lower stats section
+        pauseLeftElem.querySelector('[data-sel="levelnum"]').nextSibling.textContent = `level: ${level.levelsCleared} ${level.levels[level.onLevel]} (${level.difficultyText()})`
+        pauseLeftElem.querySelector('[data-sel="level-mob-types"]').nextSibling.textContent = `mobs: ${spawn.pickList[0]}, ${spawn.pickList[0]}`
+        pauseLeftElem.querySelector('[data-sel="seed"]').nextSibling.textContent = `seed: ${Math.initialSeed} \xa0 ${m.cycle} cycles`
+        pauseLeftElem.querySelector('[data-sel="level-stats"]').nextSibling.textContent = `mobs: ${mob.length} \xa0 blocks: ${body.length} \xa0 bullets: ${bullet.length} \xa0 power ups: ${powerUp.length}`
+        let junkElem = pauseLeftElem.querySelector('[data-sel="junk"]')
+        junkElem.parentElement.style.display = tech.junkChance ? "" : "none"
+        if(tech.junkChance) junkElem.nextSibling.textContent = `: ${(100 * tech.junkChance).toFixed(1)}% `
+        let lastElem = pauseLeftElem.querySelector('[data-sel="cheating"]')
+        lastElem.style.display = simulation.isCheating ? "" : "none"
+        let text = "<div>"
         // deaths: ${mobs.mobDeaths} &nbsp;
         // if (tech.isPauseSwitchField && !simulation.isChoosing) {
         //     const style = localSettings.isHideImages ? `style="height:auto;"` : `style="background-image: url('img/field/${m.fieldUpgrades[m.fieldMode].name}${m.fieldMode === 0 ? m.fieldUpgrades[0].imageNumber : ""}.webp');"`
@@ -518,9 +460,9 @@ const build = {
                            ${b.guns[b.inventory[i]].descriptionFunction()}</div> </div>`
         }
         if (!localSettings.isHideHUD) text += `<div class="pause-grid-module pause-console" style = "background-color: rgba(255,255,255,0.3);">${document.getElementById("text-log").innerHTML}</div>` //show last in game console message
-        let el = document.getElementById("pause-grid-left")
-        el.style.display = "grid"
-        el.innerHTML = text
+        text += "</div>";
+        if(lastElem.nextElementSibling)lastElem.nextElementSibling.outerHTML = text
+        pauseLeftElem.style.display = "grid"
     },
     generatePauseRight() {
         let text = `<div class="sort">
@@ -583,16 +525,6 @@ const build = {
             if (!aHasKeyword && bHasKeyword) return 1;
             return 0;
         }
-
-        // if (find === '') {
-        //     tech.tech.sort((a, b) => { //sorts tech into the order the player got them using tech.tech[i].cycle = m.cycle
-        //         console.log(a.cycle, b.cycle)
-        //         if (a.cycle === undefined && b.cycle !== undefined) return -1;
-        //         if (a.cycle !== undefined && b.cycle === undefined) return 1;
-        //         if (a.cycle === undefined && b.cycle === undefined) return 0;
-        //         if (a.cycle !== b.cycle) return a.cycle - b.cycle;
-        //     });
-        // } else
         if (find === 'guntech') {
             tech.tech.sort((a, b) => {
                 if (a.isGunTech && b.isGunTech) {
