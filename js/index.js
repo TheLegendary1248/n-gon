@@ -461,7 +461,8 @@ const build = {
         }
         if (!localSettings.isHideHUD) text += `<div class="pause-grid-module pause-console" style = "background-color: rgba(255,255,255,0.3);">${document.getElementById("text-log").innerHTML}</div>` //show last in game console message
         text += "</div>";
-        if(lastElem.nextElementSibling)lastElem.nextElementSibling.outerHTML = text
+        if(pauseLeftElem.firstElementChild.nextElementSibling)pauseLeftElem.firstElementChild.nextElementSibling.outerHTML = text
+        else pauseLeftElem.firstElementChild.insertAdjacentHTML("afterend", text)
         pauseLeftElem.style.display = "grid"
     },
     generatePauseRight() {
