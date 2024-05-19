@@ -390,31 +390,32 @@ const build = {
         });
         /** @type {HTMLDivElement} */
         let pauseLeftElem = document.getElementById('pause-grid-left')
-        if(localSettings.isHideImages) pauseLeftElem.getElementById('hide-images-pause').setAttribute("checked")
-        if(localSettings.isHideHUD) pauseLeftElem.getElementById('hide-hud').setAttribute("checked")
+        document.getElementById('hide-images-pause').checked = localSettings.isHideImages
+        document.getElementById('hide-hud').checked = localSettings.isHideHUD
         //Upper stats section
         pauseLeftElem.querySelector('[data-sel="pause-prompt"]').textContent = `press ${input.key.pause} to resume`
         pauseLeftElem.querySelector('[data-sel="damage"]').nextSibling.textContent = `: ${tech.damageFromTech().toPrecision(4)}x`
         pauseLeftElem.querySelector('[data-sel="difficulty"]').nextSibling.textContent = ` ${m.dmgScale.toPrecision(4)}x`
         pauseLeftElem.querySelector('[data-sel="defense"]').nextSibling.textContent = `: ${m.defense().toPrecision(4)}x`
         pauseLeftElem.querySelector('[data-sel="combat-difficulty"]').nextSibling.textContent = ` ${(simulation.dmgScale).toPrecision(4)}x`
-        //Middle stats section
         pauseLeftElem.querySelector('[data-sel="fire-rate"]').nextSibling.textContent = ": " + (1 / b.fireCDscale).toFixed(2) + "x"
+        //Middle stats section
         pauseLeftElem.querySelector('[data-sel="health"]').nextSibling.textContent = `: (${(m.health * 100).toFixed(0)} / ${(m.maxHealth *100).toFixed(0)})`
-        pauseLeftElem.querySelector('[data-sel="energy"]').nextSibling.textContent = `: (${(m.energy * 100).toFixed(0)} / ${(m.maxEnergy * 100).toFixed(0)}) + (${(m.fieldRegen * 6000).toFixed(0)}/s)`
-        pauseLeftElem.querySelector('[data-sel="gun"]').nextSibling.textContent = `: ${b.activeGun === null || b.activeGun === undefined ? "undefined" : b.guns[b.activeGun].name} `
         pauseLeftElem.querySelector('[data-sel="mass"]').textContent = `mass: ${player.mass.toFixed(1)}`
-        pauseLeftElem.querySelector('[data-sel="ammo"]').nextSibling.textContent = `:  ${b.activeGun === null || b.activeGun === undefined ? "0" : b.guns[b.activeGun].ammo} \xa0 `
-        pauseLeftElem.querySelector('[data-sel="tech"]').nextSibling.textContent = `: ${tech.totalCount} \xa0 `
+        pauseLeftElem.querySelector('[data-sel="energy"]').nextSibling.textContent = `: (${(m.energy * 100).toFixed(0)} / ${(m.maxEnergy * 100).toFixed(0)}) + (${(m.fieldRegen * 6000).toFixed(0)}/s)`
+        pauseLeftElem.querySelector('[data-sel="position"]').textContent = `position: (${player.position.x.toFixed(1)}, ${player.position.y.toFixed(1)})`
+        pauseLeftElem.querySelector('[data-sel="gun"]').nextSibling.textContent = `: ${b.activeGun === null || b.activeGun === undefined ? "undefined" : b.guns[b.activeGun].name}\xa0\xa0\xa0`
+        pauseLeftElem.querySelector('[data-sel="ammo"]').nextSibling.textContent = `:  ${b.activeGun === null || b.activeGun === undefined ? "0" : b.guns[b.activeGun].ammo}\xa0`
+        pauseLeftElem.querySelector('[data-sel="mouse"]').textContent = `mouse: (${simulation.mouseInGame.x.toFixed(1)}, ${simulation.mouseInGame.y.toFixed(1)})`
+        pauseLeftElem.querySelector('[data-sel="tech"]').nextSibling.textContent = `: ${tech.totalCount}  \xa0 `
         pauseLeftElem.querySelector('[data-sel="research"]').nextSibling.textContent = `: ${powerUps.research.count}`
-        pauseLeftElem.querySelector('[data-sel="mouse"]').textContent = `: (${(m.health * 100).toFixed(0)} / ${(m.maxHealth *100).toFixed(0)})`
-        pauseLeftElem.querySelector('[data-sel="position"]').nextSibling.textContent = `: (${(m.health * 100).toFixed(0)} / ${(m.maxHealth *100).toFixed(0)})`
-        pauseLeftElem.querySelector('[data-sel="velocity"]').nextSibling.textContent = `velocity: (${player.velocity.x.toFixed(3)}, ${player.velocity.y.toFixed(3)})`
+        pauseLeftElem.querySelector('[data-sel="velocity"]').textContent = `velocity: (${player.velocity.x.toFixed(3)}, ${player.velocity.y.toFixed(3)})`
         //Lower stats section
         pauseLeftElem.querySelector('[data-sel="levelnum"]').nextSibling.textContent = `level: ${level.levelsCleared} ${level.levels[level.onLevel]} (${level.difficultyText()})`
         pauseLeftElem.querySelector('[data-sel="level-mob-types"]').nextSibling.textContent = `mobs: ${spawn.pickList[0]}, ${spawn.pickList[0]}`
         pauseLeftElem.querySelector('[data-sel="seed"]').nextSibling.textContent = `seed: ${Math.initialSeed} \xa0 ${m.cycle} cycles`
         pauseLeftElem.querySelector('[data-sel="level-stats"]').nextSibling.textContent = `mobs: ${mob.length} \xa0 blocks: ${body.length} \xa0 bullets: ${bullet.length} \xa0 power ups: ${powerUp.length}`
+        pauseLeftElem.querySelector('[data-sel="coupling"]').innerHTML = `${m.coupling ? `<span style = 'font-size:90%;'>` + m.couplingDescription(m.coupling) + `</span> from ${(m.coupling).toFixed(0)} ${powerUps.orb.coupling(1)}` : "<br>"}`
         let junkElem = pauseLeftElem.querySelector('[data-sel="junk"]')
         junkElem.parentElement.style.display = tech.junkChance ? "" : "none"
         if(tech.junkChance) junkElem.nextSibling.textContent = `: ${(100 * tech.junkChance).toFixed(1)}% `
@@ -638,7 +639,7 @@ const build = {
         let gridTitle = this.cardTextTemplate
         return elem
     },
-    techText(i) {
+    techText(i) { //NOTE These all have the same str interpol. Use a template any tech html and templates for each respective tech type(which i might have already included somewhere)
         return `<div class="card-text" >
         <div class="grid-title" ><div class="circle-grid tech"></div> &nbsp; ${build.nameLink(tech.tech[i].name)} ${tech.tech[i].count > 1 ? `(${tech.tech[i].count}x)` : ""}</div>
         ${tech.tech[i].descriptionFunction ? tech.tech[i].descriptionFunction() : tech.tech[i].description}</div>`
