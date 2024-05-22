@@ -12,7 +12,6 @@ const Engine = Matter.Engine,
     Bodies = Matter.Bodies,
     Vector = Matter.Vector,
     Sleeping = Matter.Sleeping;
-
 // create an engine
 const engine = Engine.create();
 engine.world.gravity.scale = 0; //turn off gravity (it's added back in later)
@@ -43,9 +42,7 @@ function playerOnGroundCheck(event) {
                         m.damage(Math.min(Math.sqrt(momentum - 133) * 0.01, 0.25));
                         if (m.immuneCycle < m.cycle + m.collisionImmuneCycles) m.immuneCycle = m.cycle + m.collisionImmuneCycles; //player is immune to damage for 30 cycles
                     }
-                } else {
-                    m.yOffGoal = m.yOffWhen.stand;
-                }
+                } else m.yOffGoal = m.yOffWhen.stand;
             }
         }
     }
@@ -55,11 +52,8 @@ function playerOnGroundCheck(event) {
     if(jumpSensorIndex != -1)
     {
         let pair = pairs[jumpSensorIndex];
-        if (pair.bodyA === jumpSensor) {
-            m.standingOn = pair.bodyB; //keeping track to correctly provide recoil on jump
-            if (m.standingOn.alive !== true) enter();
-        } else if (pair.bodyB === jumpSensor) {
-            m.standingOn = pair.bodyA; //keeping track to correctly provide recoil on jump
+        if (pair.bodyA === jumpSensor || pair.bodyB === jumpSensor) {
+            m.standingOn = jumpSensor; //keeping track to correctly provide recoil on jump
             if (m.standingOn.alive !== true) enter();
         }
     }

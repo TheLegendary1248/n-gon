@@ -2,18 +2,17 @@ const tech = {
     totalCount: null,
     removeCount: 0,
     setupAllTech() {
+        let noLore = simulation.isCheating || localSettings.runCount < 1
         for (let i = 0, len = tech.tech.length; i < len; i++) {
-            tech.tech[i].isLost = false
-            tech.tech[i].isBanished = false
-            tech.tech[i].remove();
-            tech.tech[i].count = 0
-            if (tech.tech[i].isJunk) {
-                tech.tech[i].frequency = 0
-            } else if (tech.tech[i].frequencyDefault) {
-                tech.tech[i].frequency = tech.tech[i].frequencyDefault
-            } else {
-                tech.tech[i].frequency = 2
-            }
+           let selTech = tech.tech[i] 
+            Object.assign(selTech,
+            {
+                isBanished : false,
+                isLost : false,
+                count: 0,
+                frequency: noLore && selTech.isLore ? 0 : selTech.isJunk ? 0 : selTech.frequencyDefault ? selTech.frequencyDefault : 2    
+            })
+            selTech.remove();
             if (tech.tech[i].name === "heals" || tech.tech[i].name === "ammo" || tech.tech[i].name === "research") tech.tech[i].value = tech.tech[i].defaultValue
         }
         //remove lore if it's your first time playing since it's confusing
@@ -21,15 +20,6 @@ const tech = {
         tech.removeCount = 0;
         tech.pauseEjectTech = 1; //used in paradigm shift
         lore.techCount = 0;
-        if (simulation.isCheating || localSettings.runCount < 1) { //simulation.isCommunityMaps ||
-            for (let i = 0, len = tech.tech.length; i < len; i++) {
-                if (tech.tech[i].isLore) {
-                    tech.tech[i].frequency = 0;
-                    tech.tech[i].count = 0;
-                }
-            }
-        }
-
         tech.damage = 1
         tech.junkChance = 0;
         tech.extraMaxHealth = 0;
@@ -39,25 +29,16 @@ const tech = {
     },
     removeTech(index = 'random') {
         if (index === 'random') {
-            const have = [] //find which tech you have
-            for (let i = 0; i < tech.tech.length; i++) {
-                if (tech.tech[i].count > 0 && !tech.tech[i].isInstant) have.push(i)
-            }
-            if (have.length) {
-                index = have[Math.floor(Math.random() * have.length)]
-            } else {
-                return 0 //if none found don't remove any tech
-            }
+            const copy = [...tech.tech]//TODO pretty sure there's a native shallow clone func i can't google right now
+            while(copy.length)
+            {
+                index = Math.floor(Math.random() * have.length)
+                if(copy[index].isInstant) copy.splice(index, 1)
+                else break;
+            } //CHECk This might break if all the player has is instant tech
         } else if (isNaN(index)) { //find index by name
-            let found = false;
-            for (let i = 0; i < tech.tech.length; i++) {
-                if (index === tech.tech[i].name) {
-                    index = i;
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) return 0 //if name not found don't remove any tech
+            let index = tech.tech.findIndex(e => index === e.name)
+            if (index === -1) return 0 //if name not found don't remove any tech
         }
         if (tech.tech[index].count === 0) return 0
         const totalRemoved = tech.tech[index].count
@@ -76,43 +57,15 @@ const tech = {
         simulation.makeTextLog(`<strong>+${(100 * percent).toFixed(0)}%</strong> <span class='color-text'>JUNK</span><span class='color-var'>tech</span> chance`)
         tech.junkChance += (1 - tech.junkChance) * percent
         return percent
-        //make an array for possible junk tech to add
-        // let options = [];
-        // for (let i = 0; i < tech.tech.length; i++) {
-        //     if (tech.tech[i].count < tech.tech[i].maxCount && tech.tech[i].isJunk) options.push(i);
-        // }
-        // if (options.length) {
-        //     let countNonJunk = 0 // count total non junk tech
-        //     for (let i = 0, len = tech.tech.length; i < len; i++) {
-        //         if (tech.tech[i].count < tech.tech[i].maxCount && tech.tech[i].allowed() && !tech.tech[i].isJunk) countNonJunk += tech.tech[i].frequency
-        //     }
-        //     const num = Math.ceil(percent * countNonJunk) //scale number added
-        //     for (let i = 0; i < num; i++) tech.tech[options[Math.floor(Math.random() * options.length)]].frequency++ //add random array options to tech pool
-        //     simulation.makeTextLog(`<span class='color-var'>tech</span>.tech.push(${num.toFixed(0)} <span class='color-text'>JUNK</span>)`)
-        //     return num
-        // } else {
-        //     return 0
-        // }
     },
     removeJunkTechFromPool(percent) {
-        // for (let j = 0; j < num; j++) {
-        //     for (let i = 0; i < tech.tech.length; i++) {
-        //         if (tech.tech[i].isJunk && tech.tech[i].frequency > 0 && tech.tech[i].count < tech.tech[i].maxCount) {
-        //             tech.tech[i].frequency--
-        //             break
-        //         }
-        //     }
-        // }
         if (percent > 0) {
             tech.junkChance = (tech.junkChance - percent) / (1 - percent)
             if (tech.junkChance < 0.001 || tech.junkChance === undefined) tech.junkChance = 0
         }
     },
     giveRandomJUNK() {
-        const list = []
-        for (let i = 0; i < tech.tech.length; i++) {
-            if (tech.tech[i].isJunk) list.push(tech.tech[i].name)
-        }
+        const list = tech.tech.map(o => o.isJunk ? name : null)
         let name = list[Math.floor(Math.random() * list.length)]
         simulation.makeTextLog(`<span class='color-var'>tech</span>.giveTech("<span class='color-text'>${name}</span>")<em>`);
         tech.giveTech(name)
@@ -124,7 +77,7 @@ const tech = {
         // }
         if (index === 'random') {
             let options = [];
-            for (let i = 0; i < tech.tech.length; i++) {
+            for (let i = 0; i < tech.tech.length; i++) { //maybe this could be shorter
                 if (tech.tech[i].count < tech.tech[i].maxCount && tech.tech[i].allowed() && !tech.tech[i].isJunk && !tech.tech[i].isLore && !tech.tech[i].isBadRandomOption) options.push(i);
             }
             // give a random tech from the tech I don't have

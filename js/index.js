@@ -633,10 +633,21 @@ const build = {
     isExperimentRun: false,
     /** @type {DocumentFragment} */
     cardTextTemplate: document.getElementById("card-template").content,
-    getTechText(i) {
-        let elem = this.cardTextTemplate.cloneNode()
-        let gridTitle = this.cardTextTemplate
-        return elem
+    getTechDescHTML(i) {
+      let tech = tech.tech[i]
+      switch (tech.) {
+        case value:
+          
+          break;
+
+        default:
+          break;
+      }
+    },
+    getTechDescElem(i){
+      let elem = this.cardTextTemplate.cloneNode()
+      let gridTitle = this.cardTextTemplate
+      return elem
     },
     techText(i) {
         return `<div class="card-text" >
