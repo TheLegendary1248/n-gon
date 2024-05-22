@@ -81,12 +81,13 @@ function collisionChecks(event) {
     for (let i = 0, j = pairs.length; i != j; i++) {
         //mob + (player,bullet,body) collisions
         let pair = pairs[i]
-        let k = mob.indexOf(pair.bodyA)
-        let collidingMob = mob[k]
-        if(k != -1 && collidingMob.alive)
-            collideMob(pair.bodyB)
-        else if((k = mob.indexOf(pair.bodyB)) != -1 && (collidingMob = mob[k]).alive)
-            collideMob(pair.bodyA);
+        let collidingMob;
+        if(pair.bodyA.alive && mob.includes(pair.bodyA)){
+            collidingMob = pair.bodyA
+            collideMob(pair.bodyB);}
+        else if(pair.bodyB.alive && mob.includes(pair.bodyB)){
+            collidingMob = pair.bodyB
+            collideMob(pair.bodyA);}
         break;
         function collideMob(obj) {
         //player + mob collision
